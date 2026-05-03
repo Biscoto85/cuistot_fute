@@ -14,6 +14,7 @@ import { TodayPage } from '@/pages/TodayPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
 import { PreferencesPage } from '@/pages/PreferencesPage'
+import { RatePage } from '@/pages/RatePage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -41,6 +42,7 @@ export default function App() {
                 <Route path="/plan/:id" element={<PlanPage />} />
                 <Route path="/plan/:id/shopping" element={<ShoppingPage />} />
                 <Route path="/plan/:id/today" element={<TodayPage />} />
+                <Route path="/plan/:id/rate" element={<RatePage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/preferences" element={<PreferencesPage />} />

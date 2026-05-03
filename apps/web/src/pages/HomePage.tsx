@@ -152,7 +152,7 @@ function ModeFeedbackPending({ plan }: { plan: PlanSummary }) {
       <p className="text-sm text-stone-600">Comment s'est passée la semaine ?</p>
       <div className="flex gap-3">
         <Link
-          to={`/plan/${plan.id}#ratings`}
+          to={`/plan/${plan.id}/rate`}
           className="inline-block rounded-md bg-stone-800 px-5 py-2.5 text-sm text-white hover:bg-stone-700 transition-colors"
         >
           Noter les repas

@@ -210,7 +210,13 @@ export function PlanPage() {
               to={`/plan/${plan.id}/shopping`}
               className="rounded-md border border-stone-300 px-3 py-1.5 text-sm text-stone-600 hover:bg-stone-50 transition-colors"
             >
-              Liste de courses
+              Courses
+            </Link>
+            <Link
+              to={`/plan/${plan.id}/rate`}
+              className="rounded-md border border-stone-300 px-3 py-1.5 text-sm text-stone-600 hover:bg-stone-50 transition-colors"
+            >
+              Noter
             </Link>
           </div>
         </div>
