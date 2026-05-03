@@ -10,6 +10,9 @@ import { HomePage } from '@/pages/HomePage'
 import { GeneratePage } from '@/pages/GeneratePage'
 import { PlanPage } from '@/pages/PlanPage'
 import { ShoppingPage } from '@/pages/ShoppingPage'
+import { TodayPage } from '@/pages/TodayPage'
+import { HistoryPage } from '@/pages/HistoryPage'
+import { FavoritesPage } from '@/pages/FavoritesPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -36,9 +39,9 @@ export default function App() {
                 <Route path="/plan/new" element={<GeneratePage />} />
                 <Route path="/plan/:id" element={<PlanPage />} />
                 <Route path="/plan/:id/shopping" element={<ShoppingPage />} />
-                <Route path="/plan/:id/today" element={<PlaceholderPage title="Vue du jour" />} />
-                <Route path="/history" element={<PlaceholderPage title="Historique" />} />
-                <Route path="/favorites" element={<PlaceholderPage title="Favoris" />} />
+                <Route path="/plan/:id/today" element={<TodayPage />} />
+                <Route path="/history" element={<HistoryPage />} />
+                <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/preferences" element={<PlaceholderPage title="Préférences" />} />
                 <Route path="/legal" element={<PlaceholderPage title="Mentions légales" />} />
               </Route>
