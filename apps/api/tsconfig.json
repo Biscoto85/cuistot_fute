@@ -8,6 +8,9 @@
     "moduleResolution": "bundler",
     "outDir": "dist",
     "rootDir": "src",
+    // L'API est un exécutable, pas une librairie : pas besoin de fichiers .d.ts.
+    "declaration": false,
+    "declarationMap": false,
     "paths": {
       "@/*": ["./src/*"],
       // Alias pour la résolution TypeScript — l'exécution passe par node_modules.
