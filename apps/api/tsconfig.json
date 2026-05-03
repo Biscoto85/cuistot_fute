@@ -1,0 +1,20 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "CommonJS",
+    // "bundler" : résolution sans extensions requises, compatible tsx et tsc.
+    // L'exécution passe par le symlink pnpm dans node_modules.
+    "moduleResolution": "bundler",
+    "outDir": "dist",
+    "rootDir": "src",
+    "paths": {
+      "@/*": ["./src/*"],
+      // Alias pour la résolution TypeScript — l'exécution passe par node_modules.
+      "@cuistot/shared": ["../../packages/shared/src/index.ts"],
+      "@cuistot/shared/*": ["../../packages/shared/src/*"]
+    }
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist"]
+}

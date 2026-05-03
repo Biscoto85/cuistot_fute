@@ -1,0 +1,12 @@
+{
+  "name": "@cuistot/prompt-sandbox",
+  "version": "0.0.1",
+  "private": true,
+  "description": "CLI de test du prompt LLM sans passer par l'UI — implémenté en T13",
+  "scripts": {
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "^6.0.0"
+  }
+}
