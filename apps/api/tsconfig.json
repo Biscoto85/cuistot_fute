@@ -12,10 +12,8 @@
     "declaration": false,
     "declarationMap": false,
     "paths": {
-      "@/*": ["./src/*"],
-      // Alias pour la résolution TypeScript — l'exécution passe par node_modules.
-      "@cuistot/shared": ["../../packages/shared/src/index.ts"],
-      "@cuistot/shared/*": ["../../packages/shared/src/*"]
+      // @cuistot/shared résolu via node_modules (symlink pnpm → packages/shared/dist)
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],

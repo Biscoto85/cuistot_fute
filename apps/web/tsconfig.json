@@ -9,9 +9,8 @@
     "jsx": "react-jsx",
     "outDir": "dist",
     "paths": {
-      "@/*": ["./src/*"],
-      "@cuistot/shared": ["../../packages/shared/src/index.ts"],
-      "@cuistot/shared/*": ["../../packages/shared/src/*"]
+      // @cuistot/shared résolu via node_modules (symlink pnpm → packages/shared/dist)
+      "@/*": ["./src/*"]
     }
   },
   "include": ["src"],
