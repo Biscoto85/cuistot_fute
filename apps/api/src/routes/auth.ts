@@ -101,3 +101,14 @@ authRouter.get('/me', requireAuth, async (req, res) => {
   }
   res.json({ user: safeUser(user) })
 })
+
+// ─── PUT /api/auth/onboarding — marque l'onboarding comme terminé ─────────────
+
+authRouter.put('/onboarding', requireAuth, async (req, res) => {
+  const [updated] = await db
+    .update(users)
+    .set({ onboardingCompleted: true })
+    .where(eq(users.id, req.user.id))
+    .returning()
+  res.json({ user: safeUser(updated) })
+})
