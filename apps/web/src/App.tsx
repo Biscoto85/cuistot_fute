@@ -15,6 +15,7 @@ import { HistoryPage } from '@/pages/HistoryPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
 import { PreferencesPage } from '@/pages/PreferencesPage'
 import { RatePage } from '@/pages/RatePage'
+import { LegalPage } from '@/pages/LegalPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -46,7 +47,7 @@ export default function App() {
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/preferences" element={<PreferencesPage />} />
-                <Route path="/legal" element={<PlaceholderPage title="Mentions légales" />} />
+                <Route path="/legal" element={<LegalPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />

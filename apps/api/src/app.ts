@@ -14,6 +14,7 @@ import { pantryTargetsRouter } from '@/routes/pantry-targets'
 import { plansRouter } from '@/routes/plans'
 import { ratingsRouter } from '@/routes/ratings'
 import { preferencesRouter } from '@/routes/preferences'
+import { usersRouter } from '@/routes/users'
 
 export function createApp() {
   const app = express()
@@ -34,6 +35,7 @@ export function createApp() {
   app.use('/api/plans', requireAuth, plansRouter)
   app.use('/api/meal-entries', requireAuth, mealEntriesRouter)
   app.use('/api/ratings', requireAuth, ratingsRouter)
+  app.use('/api/users', requireAuth, usersRouter)
 
   // ─── Healthcheck ────────────────────────────────────────────────────────────
   app.get('/api/health', async (_req, res) => {

@@ -1,6 +1,8 @@
 import { useState } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { LOCATION_KINDS, PANTRY_CATEGORIES, PANTRY_UNITS, PANTRY_PRIORITIES } from '@cuistot/shared'
 import type { LocationKind, PantryCategory, PantryUnit, PantryPriority } from '@cuistot/shared'
 
@@ -20,10 +22,10 @@ type PantryTarget = {
   preferredLocationId: string | null; notes: string | null
 }
 
-type Tab = 'foyer' | 'lieux' | 'prefs' | 'pantry'
+type Tab = 'foyer' | 'lieux' | 'prefs' | 'pantry' | 'compte'
 
 const TAB_LABELS: Record<Tab, string> = {
-  foyer: 'Foyer', lieux: 'Lieux', prefs: 'Préférences', pantry: 'Garde-manger',
+  foyer: 'Foyer', lieux: 'Lieux', prefs: 'Préférences', pantry: 'Garde-manger', compte: 'Compte',
 }
 
 const KIND_LABELS: Record<LocationKind, string> = {
@@ -500,6 +502,112 @@ function PantrySection() {
   )
 }
 
+// ─── Section Compte (RGPD) ────────────────────────────────────────────────────
+
+function CompteSection() {
+  const { logout } = useAuth()
+  const navigate = useNavigate()
+  const [password, setPassword] = useState('')
+  const [confirmOpen, setConfirmOpen] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+
+  const exportMutation = useMutation({
+    mutationFn: async () => {
+      const res = await fetch('/api/users/me/export', { credentials: 'include' })
+      if (!res.ok) throw new Error('Export échoué')
+      const blob = await res.blob()
+      const url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `cuistot-export-${new Date().toISOString().slice(0, 10)}.json`
+      a.click()
+      URL.revokeObjectURL(url)
+    },
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: () => api.delete<void>('/api/users/me', { password }),
+    onSuccess: async () => {
+      await logout()
+      navigate('/login')
+    },
+    onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur.'),
+  })
+
+  return (
+    <div className="space-y-6">
+      {/* Export */}
+      <div>
+        <h3 className="text-sm font-medium text-stone-800 mb-1">Export de vos données</h3>
+        <p className="text-xs text-stone-500 mb-3">
+          Téléchargez un fichier JSON contenant toutes vos données : profil, préférences,
+          plans générés, notations.
+        </p>
+        <button
+          onClick={() => exportMutation.mutate()}
+          disabled={exportMutation.isPending}
+          className="rounded-md border border-stone-300 px-4 py-2 text-sm text-stone-700 hover:bg-stone-50 disabled:opacity-50 transition-colors"
+        >
+          {exportMutation.isPending ? 'Export en cours…' : 'Télécharger mes données'}
+        </button>
+        {exportMutation.isError && <p className="mt-1 text-xs text-red-500">Export échoué.</p>}
+      </div>
+
+      <hr className="border-stone-100" />
+
+      {/* Suppression */}
+      <div>
+        <h3 className="text-sm font-medium text-stone-800 mb-1">Supprimer mon compte</h3>
+        <p className="text-xs text-stone-500 mb-3">
+          Supprime définitivement votre compte et toutes vos données. Cette action est irréversible.
+        </p>
+        {!confirmOpen ? (
+          <button
+            onClick={() => setConfirmOpen(true)}
+            className="rounded-md border border-red-200 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition-colors"
+          >
+            Supprimer mon compte
+          </button>
+        ) : (
+          <div className="rounded-lg border border-red-200 bg-red-50 p-4 space-y-3">
+            <p className="text-sm text-red-700 font-medium">Confirmez avec votre mot de passe</p>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mot de passe actuel"
+              autoFocus
+              className="w-full rounded-md border border-red-200 px-3 py-2 text-sm focus:border-red-400 focus:outline-none bg-white"
+            />
+            {error && <p className="text-xs text-red-600">{error}</p>}
+            <div className="flex gap-3">
+              <button
+                onClick={() => deleteMutation.mutate()}
+                disabled={deleteMutation.isPending || !password}
+                className="rounded-md bg-red-600 px-4 py-2 text-sm text-white hover:bg-red-700 disabled:opacity-50 transition-colors"
+              >
+                {deleteMutation.isPending ? 'Suppression…' : 'Supprimer définitivement'}
+              </button>
+              <button onClick={() => { setConfirmOpen(false); setError(null); setPassword('') }}
+                className="text-sm text-stone-500 hover:text-stone-700">
+                Annuler
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+
+      <hr className="border-stone-100" />
+
+      <div>
+        <Link to="/legal" className="text-sm text-stone-400 hover:text-stone-700 underline underline-offset-2">
+          Mentions légales & confidentialité
+        </Link>
+      </div>
+    </div>
+  )
+}
+
 // ─── Page principale ──────────────────────────────────────────────────────────
 
 export function PreferencesPage() {
@@ -532,6 +640,7 @@ export function PreferencesPage() {
         {tab === 'lieux' && <LieuxSection />}
         {tab === 'prefs' && <PrefsSection />}
         {tab === 'pantry' && <PantrySection />}
+        {tab === 'compte' && <CompteSection />}
       </div>
     </div>
   )
