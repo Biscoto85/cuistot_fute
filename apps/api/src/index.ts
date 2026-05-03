@@ -1,12 +1,6 @@
 import 'dotenv/config'
-import cookieParser from 'cookie-parser'
-import cors from 'cors'
-import express from 'express'
-import { sql } from 'drizzle-orm'
-import { db } from '@/db'
-import { httpLogger, logger } from '@/lib/logger'
-import { errorHandler } from '@/middleware/errorHandler'
-import { authRouter } from '@/routes/auth'
+import { createApp } from '@/app'
+import { logger } from '@/lib/logger'
 
 // ─── Validation des variables d'environnement requises ───────────────────────
 
@@ -18,40 +12,10 @@ for (const key of REQUIRED_ENV) {
   }
 }
 
-// ─── App ──────────────────────────────────────────────────────────────────────
+// ─── Démarrage ────────────────────────────────────────────────────────────────
 
 const PORT = Number(process.env.PORT) || 3003
-const app = express()
-
-app.use(httpLogger)
-app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
-app.use(express.json())
-app.use(cookieParser())
-
-// ─── Routes publiques ─────────────────────────────────────────────────────────
-
-app.use('/api/auth', authRouter)
-
-// ─── Healthcheck ──────────────────────────────────────────────────────────────
-
-// Ping DB inclus : PM2 et les sondes de monitoring peuvent détecter une panne DB.
-app.get('/api/health', async (_req, res) => {
-  try {
-    await db.execute(sql`SELECT 1`)
-    res.json({ status: 'ok', timestamp: new Date().toISOString() })
-  } catch {
-    res.status(503).json({ status: 'error', timestamp: new Date().toISOString() })
-  }
-})
-
-// ─── Routes protégées (ajoutées à partir de T6) ───────────────────────────────
-// app.use('/api', requireAuth, ...)
-
-// ─── Error handler global (doit être le dernier middleware) ───────────────────
-
-app.use(errorHandler)
-
-// ─── Démarrage ────────────────────────────────────────────────────────────────
+const app = createApp()
 
 app.listen(PORT, () => {
   logger.info({ port: PORT }, 'API démarrée')
