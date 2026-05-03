@@ -54,6 +54,50 @@ export const LocationUpdateSchema = LocationCreateSchema.partial()
 export type LocationCreateInput = z.infer<typeof LocationCreateSchema>
 export type LocationUpdateInput = z.infer<typeof LocationUpdateSchema>
 
+// ─── Pantry targets ───────────────────────────────────────────────────────────
+
+export const PANTRY_CATEGORIES = [
+  'cereales',
+  'legumineuses',
+  'conserves',
+  'huiles_vinaigres',
+  'epices',
+  'condiments',
+  'boissons',
+  'sucres_farines',
+  'secs_divers',
+  'autre',
+] as const
+
+export const PANTRY_UNITS = ['kg', 'g', 'L', 'mL', 'pieces', 'boites', 'sachets'] as const
+
+export const PANTRY_PRIORITIES = ['essentiel', 'secondaire'] as const
+
+export type PantryCategory = (typeof PANTRY_CATEGORIES)[number]
+export type PantryUnit = (typeof PANTRY_UNITS)[number]
+export type PantryPriority = (typeof PANTRY_PRIORITIES)[number]
+
+export const PantryTargetCreateSchema = z.object({
+  name: z.string().min(1).max(200),
+  category: z.enum(PANTRY_CATEGORIES),
+  targetQuantity: z.number().positive(),
+  unit: z.enum(PANTRY_UNITS),
+  rotationMonths: z.number().int().min(1).default(6),
+  priority: z.enum(PANTRY_PRIORITIES),
+  preferredLocationId: z.string().uuid().nullish(),
+  notes: z.string().max(1000).nullish(),
+})
+
+export const PantryTargetUpdateSchema = PantryTargetCreateSchema.partial()
+
+export const PantryBulkInitSchema = z.object({
+  targets: z.array(PantryTargetCreateSchema).min(1).max(50),
+})
+
+export type PantryTargetCreateInput = z.infer<typeof PantryTargetCreateSchema>
+export type PantryTargetUpdateInput = z.infer<typeof PantryTargetUpdateSchema>
+export type PantryBulkInitInput = z.infer<typeof PantryBulkInitSchema>
+
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
 export const PreferencesUpdateSchema = z.object({
