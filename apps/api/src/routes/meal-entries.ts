@@ -8,6 +8,20 @@ import { BadRequestError, NotFoundError } from '@/lib/errors'
 
 export const mealEntriesRouter = Router()
 
+// GET /api/meal-entries?plan_id=<uuid> — repas d'un plan spécifique
+mealEntriesRouter.get('/', async (req, res) => {
+  const planId = req.query.plan_id as string | undefined
+  if (!planId) {
+    res.json({ entries: [] })
+    return
+  }
+  const entries = await db.query.mealEntries.findMany({
+    where: and(eq(mealEntries.planId, planId), eq(mealEntries.userId, req.user.id)),
+    orderBy: (t, { asc }) => asc(t.createdAt),
+  })
+  res.json({ entries })
+})
+
 // GET /api/meal-entries/favorites — repas marqués favoris (max 50, du plus récent)
 // Doit être déclaré avant /:id pour ne pas être capturé par le paramètre dynamique.
 mealEntriesRouter.get('/favorites', async (req, res) => {

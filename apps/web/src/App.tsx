@@ -7,6 +7,8 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
+import { GeneratePage } from '@/pages/GeneratePage'
+import { PlanPage } from '@/pages/PlanPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -30,8 +32,8 @@ export default function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<HomePage />} />
-                <Route path="/plan/new" element={<PlaceholderPage title="Nouveau plan" />} />
-                <Route path="/plan/:id" element={<PlaceholderPage title="Plan" />} />
+                <Route path="/plan/new" element={<GeneratePage />} />
+                <Route path="/plan/:id" element={<PlanPage />} />
                 <Route path="/plan/:id/shopping" element={<PlaceholderPage title="Liste de courses" />} />
                 <Route path="/plan/:id/today" element={<PlaceholderPage title="Vue du jour" />} />
                 <Route path="/history" element={<PlaceholderPage title="Historique" />} />
