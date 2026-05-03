@@ -1,0 +1,129 @@
+# ─── Dependencies ───────────────────────────────────────────────────
+node_modules/
+.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+# ─── pnpm ───────────────────────────────────────────────────────────
+.pnpm-store/
+.pnpm-debug.log*
+
+# ─── Build outputs ──────────────────────────────────────────────────
+dist/
+build/
+out/
+.next/
+.nuxt/
+.svelte-kit/
+.turbo/
+*.tsbuildinfo
+
+# ─── Vite ───────────────────────────────────────────────────────────
+.vite/
+vite.config.ts.timestamp-*
+vite.config.js.timestamp-*
+
+# ─── TypeScript ─────────────────────────────────────────────────────
+*.tsbuildinfo
+
+# ─── Testing ────────────────────────────────────────────────────────
+coverage/
+.nyc_output/
+*.lcov
+.vitest-cache/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# ─── Logs ───────────────────────────────────────────────────────────
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+# ─── Environment / secrets ──────────────────────────────────────────
+.env
+.env.local
+.env.*.local
+.env.development
+.env.production
+.env.staging
+*.pem
+*.key
+*.crt
+
+# Garder les exemples
+!.env.example
+
+# ─── IDE / Editors ──────────────────────────────────────────────────
+.vscode/
+!.vscode/settings.json.example
+!.vscode/extensions.json
+!.vscode/launch.json
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# ─── OS ─────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# ─── Drizzle ────────────────────────────────────────────────────────
+drizzle/meta/_journal.json.bak
+.drizzle/
+
+# ─── PostgreSQL dumps locaux ────────────────────────────────────────
+*.sql.bak
+*.dump
+backups/
+
+# ─── PM2 ────────────────────────────────────────────────────────────
+.pm2/
+ecosystem.config.local.js
+
+# ─── Sandbox CLI logs ───────────────────────────────────────────────
+tools/prompt-sandbox/logs/
+tools/prompt-sandbox/.cache/
+
+# ─── Uploads / runtime data (au cas où) ─────────────────────────────
+uploads/
+tmp/
+temp/
+
+# ─── Cache divers ───────────────────────────────────────────────────
+.cache/
+.parcel-cache/
+.eslintcache
+.stylelintcache
+.prettiercache
+
+# ─── Sentry / monitoring ────────────────────────────────────────────
+.sentryclirc
+
+# ─── Docker (si utilisé localement) ─────────────────────────────────
+docker-compose.override.yml
+
+# ─── Misc ───────────────────────────────────────────────────────────
+.history/
+*.bak
+*.orig
