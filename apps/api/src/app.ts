@@ -9,8 +9,10 @@ import { requireAuth } from '@/middleware/requireAuth'
 import { authRouter } from '@/routes/auth'
 import { householdRouter } from '@/routes/household'
 import { locationsRouter } from '@/routes/locations'
+import { mealEntriesRouter } from '@/routes/meal-entries'
 import { pantryTargetsRouter } from '@/routes/pantry-targets'
 import { plansRouter } from '@/routes/plans'
+import { ratingsRouter } from '@/routes/ratings'
 import { preferencesRouter } from '@/routes/preferences'
 
 export function createApp() {
@@ -30,6 +32,8 @@ export function createApp() {
   app.use('/api/preferences', requireAuth, preferencesRouter)
   app.use('/api/pantry-targets', requireAuth, pantryTargetsRouter)
   app.use('/api/plans', requireAuth, plansRouter)
+  app.use('/api/meal-entries', requireAuth, mealEntriesRouter)
+  app.use('/api/ratings', requireAuth, ratingsRouter)
 
   // ─── Healthcheck ────────────────────────────────────────────────────────────
   app.get('/api/health', async (_req, res) => {

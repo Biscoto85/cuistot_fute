@@ -238,9 +238,29 @@ export type PlanOutput = z.infer<typeof PlanOutputSchema>
 
 // ─── Meal entries & ratings ───────────────────────────────────────────────────
 
+export const MealEntryUpdateSchema = z.object({
+  is_favorite: z.boolean().optional(),
+  // null = effacer la date de dégustation
+  eaten_at: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date ISO YYYY-MM-DD attendue').nullable().optional(),
+})
+
+export type MealEntryUpdateInput = z.infer<typeof MealEntryUpdateSchema>
+
+// Rating unique (pour usage interne ou futur endpoint single)
 export const MealRatingCreateSchema = z.object({
   // -1 = ne veut plus, 0 = neutre, 1 = coup de cœur
   rating: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
 })
 
 export type MealRatingCreate = z.infer<typeof MealRatingCreateSchema>
+
+// Notation en lot — utilisée par POST /api/ratings (modale de fin de semaine)
+const RatingItemSchema = z.object({
+  meal_entry_id: z.string().uuid(),
+  rating: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
+  comment: z.string().max(500).optional(),
+})
+
+export const RatingsBatchSchema = z.array(RatingItemSchema).min(1).max(50)
+
+export type RatingsBatchInput = z.infer<typeof RatingsBatchSchema>
