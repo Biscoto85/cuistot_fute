@@ -13,6 +13,7 @@ import { ShoppingPage } from '@/pages/ShoppingPage'
 import { TodayPage } from '@/pages/TodayPage'
 import { HistoryPage } from '@/pages/HistoryPage'
 import { FavoritesPage } from '@/pages/FavoritesPage'
+import { PreferencesPage } from '@/pages/PreferencesPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -42,7 +43,7 @@ export default function App() {
                 <Route path="/plan/:id/today" element={<TodayPage />} />
                 <Route path="/history" element={<HistoryPage />} />
                 <Route path="/favorites" element={<FavoritesPage />} />
-                <Route path="/preferences" element={<PlaceholderPage title="Préférences" />} />
+                <Route path="/preferences" element={<PreferencesPage />} />
                 <Route path="/legal" element={<PlaceholderPage title="Mentions légales" />} />
               </Route>
             </Route>
