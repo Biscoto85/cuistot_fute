@@ -218,6 +218,14 @@ export function PlanPage() {
             >
               Noter
             </Link>
+            <Link
+              to={`/plan/${plan.id}/print`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md border border-stone-300 px-3 py-1.5 text-sm text-stone-600 hover:bg-stone-50 transition-colors"
+            >
+              Imprimer
+            </Link>
           </div>
         </div>
 

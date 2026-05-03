@@ -17,6 +17,7 @@ import { PreferencesPage } from '@/pages/PreferencesPage'
 import { RatePage } from '@/pages/RatePage'
 import { LegalPage } from '@/pages/LegalPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
+import { PrintPlanPage } from '@/pages/PrintPlanPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -37,6 +38,7 @@ export default function App() {
             <Route path="/register" element={<RegisterPage />} />
             <Route element={<ProtectedRoute />}>
               <Route path="/onboarding" element={<OnboardingPage />} />
+              <Route path="/plan/:id/print" element={<PrintPlanPage />} />
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<HomePage />} />
                 <Route path="/plan/new" element={<GeneratePage />} />

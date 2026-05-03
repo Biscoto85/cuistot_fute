@@ -1,5 +1,6 @@
 import type { GeneratePlanInput, PlanOutput } from '@cuistot/shared'
-import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v1'
+import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v2'
+import { getSeasonalProduce } from './seasons'
 import type { LlmUserContext } from './types'
 
 export { PROMPT_VERSION }
@@ -57,6 +58,10 @@ function fmtFavorites(favs: LlmUserContext['favoriteMeals']): string {
 // ─── Builders ────────────────────────────────────────────────────────────────
 
 export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput): string {
+  // Extraire le mois depuis week_start_date (format YYYY-MM-DD)
+  const month = parseInt(inputs.week_start_date.slice(5, 7), 10)
+  const { name: monthName, text: seasonalText } = getSeasonalProduce(month)
+
   return SYSTEM_PROMPT_TEMPLATE
     .replace('{{display_name}}', ctx.user.displayName)
     .replace('{{adults}}', String(ctx.household.adults))
@@ -76,6 +81,8 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
     .replace('{{recent_meals}}', fmtRecentMeals(ctx.recentWeeklyMeals))
     .replace('{{locations}}', fmtLocations(ctx.locations))
     .replace('{{pantry_targets}}', fmtPantry(ctx.pantryTargets))
+    .replace('{{month_name}}', monthName)
+    .replace('{{seasonal_produce}}', seasonalText)
     .replace('{{sunday_time_min}}', String(inputs.sunday_time_min))
     .replace('{{weekday_max_assembly_min}}', String(inputs.weekday_max_assembly_min))
     .replace('{{week_start_date}}', inputs.week_start_date)
