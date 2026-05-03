@@ -111,3 +111,136 @@ export const PreferencesUpdateSchema = z.object({
 })
 
 export type PreferencesUpdateInput = z.infer<typeof PreferencesUpdateSchema>
+
+// ─── Plan : inputs génération ─────────────────────────────────────────────────
+
+export const DAYS_OF_WEEK = [
+  'lundi',
+  'mardi',
+  'mercredi',
+  'jeudi',
+  'vendredi',
+  'samedi',
+  'dimanche',
+] as const
+
+export type DayOfWeek = (typeof DAYS_OF_WEEK)[number]
+
+// Slot au format "lundi-midi" | "lundi-soir" | ...
+const coveredSlotPattern = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)-(midi|soir)$/
+
+export const GeneratePlanInputSchema = z.object({
+  week_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date ISO YYYY-MM-DD attendue'),
+  cravings: z.string().max(500).optional(),
+  surprise_mode: z.boolean().default(false),
+  include_breakfast: z.boolean().default(true),
+  sunday_prep_count: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
+  // Durée en minutes : valeurs slider 60/90/120/150/180/210+
+  sunday_time_min: z.number().int().min(60),
+  // Valeurs slider 10/15/20/30 min
+  weekday_max_assembly_min: z.union([
+    z.literal(10),
+    z.literal(15),
+    z.literal(20),
+    z.literal(30),
+  ]),
+  covered_slots: z
+    .array(z.string().regex(coveredSlotPattern, 'Format attendu : "lundi-midi"'))
+    .min(1, 'Au moins un créneau doit être couvert'),
+  budget_eur: z.number().positive().optional(),
+  free_note: z.string().max(1000).optional(),
+})
+
+export type GeneratePlanInput = z.infer<typeof GeneratePlanInputSchema>
+
+export const RegeneratePlanInputSchema = z.object({
+  feedback: z.string().min(1).max(2000),
+})
+
+export type RegeneratePlanInput = z.infer<typeof RegeneratePlanInputSchema>
+
+// ─── Plan : sortie LLM ────────────────────────────────────────────────────────
+
+const MealSlotSchema = z
+  .object({
+    meal: z.string(),
+    assembly_note: z.string(),
+    assembly_time_min: z.number(),
+  })
+  .nullable()
+
+export const PlanOutputSchema = z.object({
+  week_start_date: z.string(),
+  // 2-3 phrases : la logique de la semaine
+  philosophy_summary: z.string(),
+
+  sunday_batch: z.object({
+    estimated_total_time_min: z.number(),
+    preparations: z.array(
+      z.object({
+        name: z.string(),
+        time_min: z.number(),
+        short_instructions: z.string(),
+        yields_for_slots: z.array(z.string()),
+      }),
+    ),
+  }),
+
+  daily_plan: z.array(
+    z.object({
+      day: z.enum(DAYS_OF_WEEK),
+      lunch: MealSlotSchema,
+      dinner: MealSlotSchema,
+    }),
+  ),
+
+  breakfast: z
+    .object({
+      sunday_prep: z.array(
+        z.object({
+          name: z.string(),
+          short_instructions: z.string(),
+          keeps_days: z.number(),
+        }),
+      ),
+      daily_options: z.array(z.string()),
+    })
+    .nullable(),
+
+  shopping_list: z.array(
+    z.object({
+      location_id: z.string().uuid(),
+      location_name: z.string(),
+      items: z.array(
+        z.object({
+          item: z.string(),
+          qty: z.string(),
+          category: z.string().optional(),
+          freshness_urgency: z.enum(['day_of_cooking', 'flexible']),
+        }),
+      ),
+    }),
+  ),
+
+  pantry_renewal_suggestions: z.array(
+    z.object({
+      pantry_target_id: z.string().uuid(),
+      name: z.string(),
+      reason: z.string(),
+    }),
+  ),
+
+  estimated_cost_eur: z.number(),
+  warnings: z.array(z.string()),
+})
+
+export type PlanOutput = z.infer<typeof PlanOutputSchema>
+
+// ─── Meal entries & ratings ───────────────────────────────────────────────────
+
+export const MealRatingCreateSchema = z.object({
+  // -1 = ne veut plus, 0 = neutre, 1 = coup de cœur
+  rating: z.union([z.literal(-1), z.literal(0), z.literal(1)]),
+})
+
+export type MealRatingCreate = z.infer<typeof MealRatingCreateSchema>
