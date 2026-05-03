@@ -7,6 +7,7 @@ import { LoginPage } from '@/pages/LoginPage'
 import { RegisterPage } from '@/pages/RegisterPage'
 import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
+import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -29,6 +30,14 @@ export default function App() {
               <Route path="/onboarding" element={<OnboardingPage />} />
               <Route element={<AppLayout />}>
                 <Route path="/app" element={<HomePage />} />
+                <Route path="/plan/new" element={<PlaceholderPage title="Nouveau plan" />} />
+                <Route path="/plan/:id" element={<PlaceholderPage title="Plan" />} />
+                <Route path="/plan/:id/shopping" element={<PlaceholderPage title="Liste de courses" />} />
+                <Route path="/plan/:id/today" element={<PlaceholderPage title="Vue du jour" />} />
+                <Route path="/history" element={<PlaceholderPage title="Historique" />} />
+                <Route path="/favorites" element={<PlaceholderPage title="Favoris" />} />
+                <Route path="/preferences" element={<PlaceholderPage title="Préférences" />} />
+                <Route path="/legal" element={<PlaceholderPage title="Mentions légales" />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />
