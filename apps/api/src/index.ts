@@ -2,10 +2,10 @@ import 'dotenv/config'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import express from 'express'
-
-// Import en side-effect : lève une exception au boot si DATABASE_URL ou JWT_SECRET manquent.
-import '@/db'
-import { logger } from '@/lib/logger'
+import { sql } from 'drizzle-orm'
+import { db } from '@/db'
+import { httpLogger, logger } from '@/lib/logger'
+import { errorHandler } from '@/middleware/errorHandler'
 import { authRouter } from '@/routes/auth'
 
 // ─── Validation des variables d'environnement requises ───────────────────────
@@ -23,25 +23,33 @@ for (const key of REQUIRED_ENV) {
 const PORT = Number(process.env.PORT) || 3003
 const app = express()
 
-app.use(cors({
-  origin: process.env.CORS_ORIGIN,
-  credentials: true,  // nécessaire pour que le cookie JWT soit transmis cross-origin
-}))
+app.use(httpLogger)
+app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
 app.use(express.json())
 app.use(cookieParser())
 
-// ─── Routes publiques (pas de requireAuth) ────────────────────────────────────
+// ─── Routes publiques ─────────────────────────────────────────────────────────
 
 app.use('/api/auth', authRouter)
 
-// ─── Endpoint de santé ────────────────────────────────────────────────────────
+// ─── Healthcheck ──────────────────────────────────────────────────────────────
 
-app.get('/api/health', (_req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() })
+// Ping DB inclus : PM2 et les sondes de monitoring peuvent détecter une panne DB.
+app.get('/api/health', async (_req, res) => {
+  try {
+    await db.execute(sql`SELECT 1`)
+    res.json({ status: 'ok', timestamp: new Date().toISOString() })
+  } catch {
+    res.status(503).json({ status: 'error', timestamp: new Date().toISOString() })
+  }
 })
 
-// ─── Routes protégées ajoutées au fil des tâches (T6+) ───────────────────────
+// ─── Routes protégées (ajoutées à partir de T6) ───────────────────────────────
 // app.use('/api', requireAuth, ...)
+
+// ─── Error handler global (doit être le dernier middleware) ───────────────────
+
+app.use(errorHandler)
 
 // ─── Démarrage ────────────────────────────────────────────────────────────────
 
