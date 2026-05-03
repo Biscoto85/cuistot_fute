@@ -9,6 +9,7 @@ import { OnboardingPage } from '@/pages/OnboardingPage'
 import { HomePage } from '@/pages/HomePage'
 import { GeneratePage } from '@/pages/GeneratePage'
 import { PlanPage } from '@/pages/PlanPage'
+import { ShoppingPage } from '@/pages/ShoppingPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 
 const queryClient = new QueryClient({
@@ -34,7 +35,7 @@ export default function App() {
                 <Route path="/app" element={<HomePage />} />
                 <Route path="/plan/new" element={<GeneratePage />} />
                 <Route path="/plan/:id" element={<PlanPage />} />
-                <Route path="/plan/:id/shopping" element={<PlaceholderPage title="Liste de courses" />} />
+                <Route path="/plan/:id/shopping" element={<ShoppingPage />} />
                 <Route path="/plan/:id/today" element={<PlaceholderPage title="Vue du jour" />} />
                 <Route path="/history" element={<PlaceholderPage title="Historique" />} />
                 <Route path="/favorites" element={<PlaceholderPage title="Favoris" />} />
