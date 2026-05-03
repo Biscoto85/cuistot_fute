@@ -40,7 +40,7 @@ hébergée sur VPS personnel.
 | DB           | PostgreSQL (instance VPS dédiée à `cuistot`)                |
 | ORM          | Drizzle (cohérent avec PairsForm)                           |
 | Validation   | Zod (schémas partagés frontend/backend)                     |
-| LLM          | API Anthropic, modèle Claude Sonnet 4.5                     |
+| LLM          | API Anthropic, modèle Claude Sonnet 4.6 (`claude-sonnet-4-6`) |
 | Auth         | Email + password, JWT en cookie httpOnly, hash argon2       |
 | Déploiement  | PM2 + Nginx reverse proxy (cohérent avec PairsForm)         |
 | Logging      | Pino (structuré JSON)                                       |

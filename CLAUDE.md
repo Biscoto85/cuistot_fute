@@ -21,7 +21,7 @@ nouvelle session avant d'attaquer une tâche.
 - **Backend** : Node.js + Express + TypeScript
 - **DB** : PostgreSQL avec Drizzle ORM
 - **Validation** : Zod, schémas partagés frontend/backend
-- **LLM** : API Anthropic, modèle Claude Sonnet 4.5
+- **LLM** : API Anthropic, modèle Claude Sonnet 4.6 (`claude-sonnet-4-6`)
 - **Auth** : Email + password, JWT cookie httpOnly, hash argon2
 - **Package manager** : pnpm (workspaces)
 - **Déploiement** : PM2 + Nginx (cohérent avec PairsForm)
@@ -196,10 +196,14 @@ d'emoji partout, pas de "wow génial". On respecte l'intelligence du user.
 
 ## Deploy
 
-- VPS partagé avec PairsForm
-- DB PostgreSQL séparée (`cuistot` user et database)
+- VPS partagé avec PairsForm et Partiprism
+- DB PostgreSQL séparée (`cuistot` user et database), même instance locale port 5432
+- **Port API Express : 3003** (PairsForm=3001, Partiprism=3002 → suite logique)
+- **Port Vite dev : 5174** (Partiprism=5173)
 - Sous-domaine séparé (`cuistotfute.<domaine>`)
 - Instance PM2 nommée `cuistot-api` distincte
+- Nginx : reverse proxy `cuistotfute.<domaine>` → `127.0.0.1:3003`
+- `ecosystem.config.js` pointe vers `apps/api/dist/index.js`
 - Backups DB quotidiens automatiques (cohérent avec PairsForm)
 
 ## Questions ouvertes / décisions à prendre
