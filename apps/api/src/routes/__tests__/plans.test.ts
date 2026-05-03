@@ -9,6 +9,7 @@ vi.mock('@/db', () => ({
       weeklyPlans: { findMany: vi.fn(), findFirst: vi.fn() },
     },
     insert: vi.fn(),
+    update: vi.fn(),
   },
 }))
 
@@ -225,5 +226,124 @@ describe('GET /api/plans/:id', () => {
     expect(res.status).toBe(200)
     expect(res.body.plan.id).toBe('plan-1')
     expect(res.body.plan.outputJson).toBeDefined()
+  })
+})
+
+// ─── POST /api/plans/:id/regenerate ───────────────────────────────────────────
+
+describe('POST /api/plans/:id/regenerate', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renvoie 401 sans auth', async () => {
+    const res = await request(app).post('/api/plans/plan-1/regenerate').send({ feedback: 'Trop de viande' })
+    expect(res.status).toBe(401)
+  })
+
+  it('renvoie 400 si feedback est vide', async () => {
+    const res = await request(app)
+      .post('/api/plans/plan-1/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: '' })
+    expect(res.status).toBe(400)
+  })
+
+  it('renvoie 404 si le plan n\'appartient pas au user', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(undefined)
+
+    const res = await request(app)
+      .post('/api/plans/plan-autre/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: 'Trop de viande' })
+    expect(res.status).toBe(404)
+  })
+
+  it('archive l\'ancien plan et cree le nouveau (201)', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(mockPlan as any)
+    vi.mocked(loadUserContext).mockResolvedValueOnce({} as any)
+    vi.mocked(generatePlan).mockResolvedValueOnce(validPlanOutput as any)
+
+    // db.update pour archiver l'ancien plan
+    const updateWhere = vi.fn().mockResolvedValue([])
+    const updateSet = vi.fn().mockReturnValue({ where: updateWhere })
+    vi.mocked(db.update).mockReturnValueOnce({ set: updateSet } as any)
+
+    // db.insert x2 : nouveau plan + entries
+    const newPlan = { ...mockPlan, id: 'plan-new' }
+    const returningNewPlan = vi.fn().mockResolvedValueOnce([newPlan])
+    const valuesNewPlan = vi.fn().mockReturnValue({ returning: returningNewPlan })
+    const returningEntries = vi.fn().mockResolvedValueOnce([
+      { id: 'e-1', slot: 'lundi-midi', mealLabel: 'Salade poulet' },
+      { id: 'e-2', slot: 'lundi-soir', mealLabel: 'Riz poulet' },
+    ])
+    const valuesEntries = vi.fn().mockReturnValue({ returning: returningEntries })
+    vi.mocked(db.insert)
+      .mockReturnValueOnce({ values: valuesNewPlan } as any)
+      .mockReturnValueOnce({ values: valuesEntries } as any)
+
+    const res = await request(app)
+      .post('/api/plans/plan-1/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: 'Moins de viande rouge, plus de légumes.' })
+
+    expect(res.status).toBe(201)
+    expect(res.body.plan.id).toBe('plan-new')
+    expect(res.body.entries).toHaveLength(2)
+    // Vérifie que generatePlan a été appelé avec le bon kind
+    expect(generatePlan).toHaveBeenCalledWith(
+      expect.any(Object),
+      expect.any(Object),
+      'user-1',
+      'regenerate_with_feedback',
+      expect.objectContaining({ feedback: 'Moins de viande rouge, plus de légumes.' }),
+    )
+    // Vérifie que l'ancien plan a été archivé
+    expect(db.update).toHaveBeenCalledTimes(1)
+  })
+})
+
+// ─── POST /api/plans/:id/finalize ─────────────────────────────────────────────
+
+describe('POST /api/plans/:id/finalize', () => {
+  beforeEach(() => vi.clearAllMocks())
+
+  it('renvoie 401 sans auth', async () => {
+    const res = await request(app).post('/api/plans/plan-1/finalize')
+    expect(res.status).toBe(401)
+  })
+
+  it('renvoie 404 si le plan n\'appartient pas au user', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(undefined)
+
+    const res = await request(app).post('/api/plans/plan-autre/finalize').set('Cookie', cookie)
+    expect(res.status).toBe(404)
+  })
+
+  it('renvoie 409 si le plan est deja active', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce({ ...mockPlan, status: 'active' } as any)
+
+    const res = await request(app).post('/api/plans/plan-1/finalize').set('Cookie', cookie)
+    expect(res.status).toBe(409)
+  })
+
+  it('renvoie 409 si le plan est deja archive', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce({ ...mockPlan, status: 'archived' } as any)
+
+    const res = await request(app).post('/api/plans/plan-1/finalize').set('Cookie', cookie)
+    expect(res.status).toBe(409)
+  })
+
+  it('passe le plan de draft a active (200)', async () => {
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(mockPlan as any)
+
+    const activePlan = { ...mockPlan, status: 'active' }
+    const returning = vi.fn().mockResolvedValueOnce([activePlan])
+    const where = vi.fn().mockReturnValue({ returning })
+    const set = vi.fn().mockReturnValue({ where })
+    vi.mocked(db.update).mockReturnValueOnce({ set } as any)
+
+    const res = await request(app).post('/api/plans/plan-1/finalize').set('Cookie', cookie)
+
+    expect(res.status).toBe(200)
+    expect(res.body.plan.status).toBe('active')
   })
 })

@@ -1,4 +1,4 @@
-import type { GeneratePlanInput } from '@cuistot/shared'
+import type { GeneratePlanInput, PlanOutput } from '@cuistot/shared'
 import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v1'
 import type { LlmUserContext } from './types'
 
@@ -105,6 +105,43 @@ export function buildUserMessage(inputs: GeneratePlanInput): string {
   ]
 
   return lines.filter((l) => l !== null).join('\n')
+}
+
+// Message de régénération : base generate + plan précédent + feedback utilisateur
+export function buildRegenerateUserMessage(
+  inputs: GeneratePlanInput,
+  feedback: string,
+  previous: PlanOutput,
+): string {
+  const base = buildUserMessage(inputs).replace('DEMANDE DE GÉNÉRATION', 'DEMANDE DE RÉGÉNÉRATION')
+
+  const prevPreps = previous.sunday_batch.preparations.length > 0
+    ? previous.sunday_batch.preparations.map((p) => `  - ${p.name} (${p.time_min} min)`).join('\n')
+    : '  (aucune)'
+
+  const prevMeals = previous.daily_plan
+    .filter((d) => d.lunch || d.dinner)
+    .map((d) => {
+      const parts = []
+      if (d.lunch) parts.push(`midi=${d.lunch.meal}`)
+      if (d.dinner) parts.push(`soir=${d.dinner.meal}`)
+      return `  ${d.day} : ${parts.join(', ')}`
+    })
+    .join('\n') || '  (aucun repas)'
+
+  return `${base}
+
+FEEDBACK UTILISATEUR (à prendre en compte impérativement)
+${feedback}
+
+PLAN PRÉCÉDENT (à améliorer sur la base du feedback)
+Philosophie : ${previous.philosophy_summary}
+Prépas dimanche :
+${prevPreps}
+Repas de la semaine :
+${prevMeals}
+
+Améliore ce plan en tenant compte du feedback. Réponds uniquement en JSON valide.`
 }
 
 export function buildRetryMessage(validationError: string): string {

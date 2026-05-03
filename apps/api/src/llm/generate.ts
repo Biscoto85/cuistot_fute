@@ -4,8 +4,8 @@ import { db } from '@/db'
 import { llmLogs } from '@/db/schema'
 import { logger } from '@/lib/logger'
 import { anthropic } from './client'
-import { buildRetryMessage, buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from './prompt-builder'
-import type { LlmLogKind, LlmUserContext } from './types'
+import { buildRegenerateUserMessage, buildRetryMessage, buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from './prompt-builder'
+import type { LlmLogKind, LlmUserContext, RegenerateContext } from './types'
 
 const MODEL = 'claude-sonnet-4-6'
 const MAX_TOKENS = 8096
@@ -86,10 +86,13 @@ export async function generatePlan(
   inputs: GeneratePlanInput,
   userId: string,
   kind: LlmLogKind = 'generate_plan',
+  regenerateCtx?: RegenerateContext,
 ): Promise<PlanOutput> {
   const startMs = Date.now()
   const systemPrompt = buildSystemPrompt(context, inputs)
-  const userPrompt = buildUserMessage(inputs)
+  const userPrompt = regenerateCtx
+    ? buildRegenerateUserMessage(inputs, regenerateCtx.feedback, regenerateCtx.previousPlanOutput)
+    : buildUserMessage(inputs)
 
   logger.info({ promptVersion: PROMPT_VERSION, kind }, 'llm: démarrage génération')
 

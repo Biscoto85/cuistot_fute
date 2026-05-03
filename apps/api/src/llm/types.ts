@@ -52,3 +52,8 @@ export type LlmUserContext = {
 }
 
 export type LlmLogKind = 'generate_plan' | 'regenerate_with_feedback' | 'sandbox'
+
+export type RegenerateContext = {
+  feedback: string
+  previousPlanOutput: import('@cuistot/shared').PlanOutput
+}

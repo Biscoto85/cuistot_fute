@@ -1,11 +1,11 @@
 import { and, eq } from 'drizzle-orm'
 import { Router } from 'express'
-import { GeneratePlanInputSchema } from '@cuistot/shared'
+import { GeneratePlanInputSchema, RegeneratePlanInputSchema } from '@cuistot/shared'
 import type { PlanOutput } from '@cuistot/shared'
 import { db } from '@/db'
 import { mealEntries, weeklyPlans } from '@/db/schema'
 import type { NewMealEntry } from '@/db/schema'
-import { BadRequestError, NotFoundError } from '@/lib/errors'
+import { BadRequestError, ConflictError, NotFoundError } from '@/lib/errors'
 import { loadUserContext } from '@/llm/context-loader'
 import { generatePlan } from '@/llm/generate'
 
@@ -64,6 +64,76 @@ plansRouter.post('/generate', async (req, res) => {
     : []
 
   res.status(201).json({ plan, entries })
+})
+
+// POST /api/plans/:id/regenerate
+plansRouter.post('/:id/regenerate', async (req, res) => {
+  const parsed = RegeneratePlanInputSchema.safeParse(req.body)
+  if (!parsed.success) throw new BadRequestError('Données invalides')
+  const { feedback } = parsed.data
+  const userId = req.user.id
+
+  const existing = await db.query.weeklyPlans.findFirst({
+    where: and(eq(weeklyPlans.id, req.params.id), eq(weeklyPlans.userId, userId)),
+  })
+  if (!existing) throw new NotFoundError('Plan introuvable')
+
+  // Récupérer les inputs originaux (stockés dans inputsJson) et l'output précédent
+  const inputs = GeneratePlanInputSchema.parse(existing.inputsJson)
+  const previousOutput = existing.outputJson as PlanOutput
+
+  const context = await loadUserContext(userId)
+  const newOutput: PlanOutput = await generatePlan(
+    context, inputs, userId,
+    'regenerate_with_feedback',
+    { feedback, previousPlanOutput: previousOutput },
+  )
+
+  // Archiver l'ancien plan, puis créer le nouveau
+  await db
+    .update(weeklyPlans)
+    .set({ status: 'archived' })
+    .where(eq(weeklyPlans.id, existing.id))
+
+  const [newPlan] = await db
+    .insert(weeklyPlans)
+    .values({
+      userId,
+      weekStartDate: inputs.week_start_date,
+      inputsJson: inputs,
+      outputJson: newOutput,
+      status: 'draft',
+    })
+    .returning()
+
+  const entryRows: NewMealEntry[] = []
+  for (const day of newOutput.daily_plan) {
+    if (day.lunch) entryRows.push({ userId, planId: newPlan.id, slot: `${day.day}-midi`, mealLabel: day.lunch.meal, mealDataJson: day.lunch })
+    if (day.dinner) entryRows.push({ userId, planId: newPlan.id, slot: `${day.day}-soir`, mealLabel: day.dinner.meal, mealDataJson: day.dinner })
+  }
+
+  const entries = entryRows.length > 0
+    ? await db.insert(mealEntries).values(entryRows).returning()
+    : []
+
+  res.status(201).json({ plan: newPlan, entries })
+})
+
+// POST /api/plans/:id/finalize
+plansRouter.post('/:id/finalize', async (req, res) => {
+  const plan = await db.query.weeklyPlans.findFirst({
+    where: and(eq(weeklyPlans.id, req.params.id), eq(weeklyPlans.userId, req.user.id)),
+  })
+  if (!plan) throw new NotFoundError('Plan introuvable')
+  if (plan.status !== 'draft') throw new ConflictError(`Le plan est déjà ${plan.status}`)
+
+  const [updated] = await db
+    .update(weeklyPlans)
+    .set({ status: 'active' })
+    .where(eq(weeklyPlans.id, plan.id))
+    .returning()
+
+  res.json({ plan: updated })
 })
 
 // GET /api/plans — liste des plans du user, du plus récent au plus ancien
