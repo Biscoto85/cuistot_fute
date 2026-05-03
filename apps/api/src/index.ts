@@ -4,7 +4,7 @@ import { logger } from '@/lib/logger'
 
 // ─── Validation des variables d'environnement requises ───────────────────────
 
-const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN'] as const
+const REQUIRED_ENV = ['DATABASE_URL', 'JWT_SECRET', 'CORS_ORIGIN', 'ANTHROPIC_API_KEY'] as const
 for (const key of REQUIRED_ENV) {
   if (!process.env[key]) {
     logger.fatal({ key }, `Variable d'environnement manquante : ${key}`)
