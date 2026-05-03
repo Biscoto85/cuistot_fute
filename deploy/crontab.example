@@ -1,0 +1,8 @@
+# Crontab Cuistot Futé — ajouter avec : crontab -e
+# (cohérent avec les autres apps du VPS)
+
+# Backup DB tous les jours à 3h05 (décalé de 5min vs PairsForm à 3h00)
+5 3 * * * /var/www/cuistot_fute/deploy/backup.sh >> /var/log/pm2/cuistot-backup.log 2>&1
+
+# Healthcheck toutes les 5 minutes
+*/5 * * * * /var/www/cuistot_fute/deploy/healthcheck.sh
