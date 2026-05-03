@@ -1,0 +1,114 @@
+{
+  "user": { "displayName": "François-Xavier" },
+  "household": {
+    "adults": 2,
+    "children": 0,
+    "description": "Couple, cuisine le dimanche. Congélateur compact (5 kg max)."
+  },
+  "preferences": {
+    "loves": ["poulet rôti", "lentilles", "cuisine asiatique", "fromages", "agneau", "légumes de saison"],
+    "dislikes": ["betterave", "céleri"],
+    "allergies": [],
+    "currentPhase": "batch cooking dominical",
+    "dietaryTargets": { "légumes": "2 portions/jour minimum", "protéines": "1 source animale max/jour" },
+    "localSpecialties": "Senlis — marché du mercredi et samedi (maraîchers locaux, fromager affineur)",
+    "notes": "Évite les préparations techniques en semaine. Aime varier les épices."
+  },
+  "locations": [
+    {
+      "id": "11111111-1111-1111-1111-111111111111",
+      "name": "Biocoop Senlis",
+      "kind": "bio",
+      "notes": "Fermé le lundi. Bons légumes secs et huiles."
+    },
+    {
+      "id": "22222222-2222-2222-2222-222222222222",
+      "name": "Marché de Senlis",
+      "kind": "marche",
+      "notes": "Mercredi et samedi matin. Maraîchers et fromager."
+    },
+    {
+      "id": "33333333-3333-3333-3333-333333333333",
+      "name": "Boucherie Dupont",
+      "kind": "boucherie",
+      "notes": "Poulets fermiers de la région, agneau de qualité."
+    }
+  ],
+  "pantryTargets": [
+    {
+      "id": "44444444-4444-4444-4444-444444444444",
+      "name": "Lentilles vertes du Puy",
+      "targetQuantity": "2",
+      "unit": "kg",
+      "rotationMonths": 6,
+      "lastPurchasedAt": "2025-12-10",
+      "priority": "essentiel"
+    },
+    {
+      "id": "55555555-5555-5555-5555-555555555555",
+      "name": "Pois chiches secs",
+      "targetQuantity": "1",
+      "unit": "kg",
+      "rotationMonths": 6,
+      "lastPurchasedAt": "2026-01-20",
+      "priority": "essentiel"
+    },
+    {
+      "id": "66666666-6666-6666-6666-666666666666",
+      "name": "Huile d'olive extra-vierge",
+      "targetQuantity": "1",
+      "unit": "L",
+      "rotationMonths": 4,
+      "lastPurchasedAt": "2026-03-01",
+      "priority": "essentiel"
+    },
+    {
+      "id": "77777777-7777-7777-7777-777777777777",
+      "name": "Riz basmati",
+      "targetQuantity": "1.5",
+      "unit": "kg",
+      "rotationMonths": 6,
+      "lastPurchasedAt": "2026-02-15",
+      "priority": "secondaire"
+    },
+    {
+      "id": "88888888-8888-8888-8888-888888888888",
+      "name": "Conserves tomates pelées",
+      "targetQuantity": "6",
+      "unit": "boites",
+      "rotationMonths": 12,
+      "lastPurchasedAt": "2025-11-01",
+      "priority": "essentiel"
+    }
+  ],
+  "recentWeeklyMeals": [
+    {
+      "weekStartDate": "2026-04-27",
+      "mealLabels": [
+        "Poulet rôti", "Salade poulet-roquette-parmesan", "Wrap poulet-tahini",
+        "Lentilles au cumin et carottes", "Soupe lentilles-coco",
+        "Pasta primavera", "Omelette aux herbes"
+      ]
+    },
+    {
+      "weekStartDate": "2026-04-20",
+      "mealLabels": [
+        "Agneau rôti", "Taboulé agneau-menthe", "Hachis parmentier d'agneau",
+        "Risotto aux champignons", "Salade César maison"
+      ]
+    }
+  ],
+  "recentRatings": [
+    { "mealLabel": "Poulet rôti", "rating": 1, "ratedAt": "2026-05-01" },
+    { "mealLabel": "Lentilles au cumin et carottes", "rating": 1, "ratedAt": "2026-04-30" },
+    { "mealLabel": "Pasta primavera", "rating": 0, "ratedAt": "2026-04-29" },
+    { "mealLabel": "Soupe lentilles-coco", "rating": 1, "ratedAt": "2026-04-28" },
+    { "mealLabel": "Risotto aux champignons", "rating": 1, "ratedAt": "2026-04-22" },
+    { "mealLabel": "Hachis parmentier d'agneau", "rating": -1, "ratedAt": "2026-04-21" }
+  ],
+  "favoriteMeals": [
+    { "mealLabel": "Poulet rôti" },
+    { "mealLabel": "Lentilles corail coconut" },
+    { "mealLabel": "Risotto aux champignons" }
+  ]
+}

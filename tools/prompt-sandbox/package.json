@@ -2,11 +2,19 @@
   "name": "@cuistot/prompt-sandbox",
   "version": "0.0.1",
   "private": true,
-  "description": "CLI de test du prompt LLM sans passer par l'UI — implémenté en T13",
   "scripts": {
+    "generate": "tsx src/index.ts generate",
+    "regenerate": "tsx src/index.ts regenerate",
+    "show-prompt": "tsx src/index.ts show-prompt",
     "typecheck": "tsc --noEmit"
   },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.52.0",
+    "@cuistot/shared": "workspace:*"
+  },
   "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsx": "^4.19.0",
     "typescript": "^6.0.0"
   }
 }

@@ -1,0 +1,39 @@
+{
+  "user": { "displayName": "Jean" },
+  "household": {
+    "adults": 1,
+    "children": 0,
+    "description": "Célibataire, peu de temps en semaine."
+  },
+  "preferences": {
+    "loves": ["pâtes", "salades composées", "cuisine rapide", "sushis"],
+    "dislikes": ["abats"],
+    "allergies": ["noix"],
+    "currentPhase": null,
+    "dietaryTargets": null,
+    "localSpecialties": null,
+    "notes": "Prépas < 15 min en semaine impératif. Portions pour 1 personne."
+  },
+  "locations": [
+    {
+      "id": "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa",
+      "name": "Carrefour Market",
+      "kind": "supermarche",
+      "notes": "Ouvert 7j/7."
+    }
+  ],
+  "pantryTargets": [
+    {
+      "id": "bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb",
+      "name": "Pâtes",
+      "targetQuantity": "1",
+      "unit": "kg",
+      "rotationMonths": 6,
+      "lastPurchasedAt": "2026-04-01",
+      "priority": "essentiel"
+    }
+  ],
+  "recentWeeklyMeals": [],
+  "recentRatings": [],
+  "favoriteMeals": []
+}

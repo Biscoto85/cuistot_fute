@@ -139,7 +139,20 @@ importers:
         version: 6.0.3
 
   tools/prompt-sandbox:
+    dependencies:
+      '@anthropic-ai/sdk':
+        specifier: ^0.52.0
+        version: 0.52.0
+      '@cuistot/shared':
+        specifier: workspace:*
+        version: link:../../packages/shared
     devDependencies:
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.19.17
+      tsx:
+        specifier: ^4.19.0
+        version: 4.21.0
       typescript:
         specifier: ^6.0.0
         version: 6.0.3
