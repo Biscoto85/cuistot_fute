@@ -9,7 +9,7 @@ module.exports = {
       autorestart: true,
       watch: false,
       max_memory_restart: '300M',
-      env_file: 'apps/api/.env',
+      env_file: '/var/www/cuistot_fute/apps/api/.env',
       env: {
         NODE_ENV: 'production',
         PORT: 3003,
