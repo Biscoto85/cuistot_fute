@@ -19,7 +19,7 @@ const DAYS_FR: Record<string, string> = {
 export function PrintPlanPage() {
   const { id } = useParams<{ id: string }>()
 
-  const { data: plan, isLoading, isError } = useQuery<Plan>({
+  const { data, isLoading, isError } = useQuery<{ plan: Plan }>({
     queryKey: ['plan', id],
     queryFn: () => api.get(`/api/plans/${id}`),
   })
@@ -28,6 +28,7 @@ export function PrintPlanPage() {
     return <div className="p-8 text-stone-500 text-sm">Chargement…</div>
   }
 
+  const plan = data?.plan
   if (isError || !plan) {
     return <div className="p-8 text-red-600 text-sm">Plan introuvable.</div>
   }
