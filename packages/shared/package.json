@@ -5,18 +5,20 @@
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "default": "./dist/index.js"
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
     }
   },
   "scripts": {
-    "dev": "tsc --watch --preserveWatchOutput",
-    "build": "tsc",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "build": "tsup src/index.ts --format cjs,esm --dts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "zod": "^3.25.0"
   },
   "devDependencies": {
+    "tsup": "^8.0.0",
     "typescript": "^6.0.0"
   }
 }
