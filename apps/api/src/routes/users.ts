@@ -73,7 +73,7 @@ usersRouter.delete('/me', requireAuth, async (req, res) => {
     return
   }
 
-  const valid = await verifyPassword(parsed.password, user.passwordHash)
+  const valid = await verifyPassword(user.passwordHash, parsed.password)
   if (!valid) throw new BadRequestError('Mot de passe incorrect')
 
   // ON DELETE CASCADE supprime toutes les données liées
