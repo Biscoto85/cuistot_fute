@@ -34,6 +34,7 @@ const ctx: LlmUserContext = {
     dislikes: ['betterave'],
     allergies: [],
     currentPhase: null,
+    cookingComplexity: 'intermediate',
     dietaryTargets: null,
     localSpecialties: 'Senlis — bons maraîchers du marché',
     notes: null,

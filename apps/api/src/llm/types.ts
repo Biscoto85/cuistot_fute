@@ -15,6 +15,7 @@ export type LlmUserContext = {
     dislikes: string[]
     allergies: string[]
     currentPhase: string | null
+    cookingComplexity: string
     dietaryTargets: Record<string, string> | null
     localSpecialties: string | null
     notes: string | null

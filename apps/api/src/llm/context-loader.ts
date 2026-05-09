@@ -96,6 +96,7 @@ export async function loadUserContext(userId: string): Promise<LlmUserContext> {
       dislikes: preferences?.dislikes ?? [],
       allergies: preferences?.allergies ?? [],
       currentPhase: preferences?.currentPhase ?? null,
+      cookingComplexity: preferences?.cookingComplexity ?? 'intermediate',
       dietaryTargets: preferences?.dietaryTargets ?? null,
       localSpecialties: preferences?.localSpecialties ?? null,
       notes: preferences?.notes ?? null,

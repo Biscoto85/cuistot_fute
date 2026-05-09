@@ -1,5 +1,5 @@
 import type { GeneratePlanInput, PlanOutput } from '@cuistot/shared'
-import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v2'
+import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v3'
 import { getSeasonalProduce } from './seasons'
 import type { LlmUserContext } from './types'
 
@@ -55,12 +55,19 @@ function fmtFavorites(favs: LlmUserContext['favoriteMeals']): string {
   return favs.map((f) => f.mealLabel).join(', ')
 }
 
+const COMPLEXITY_LABELS: Record<string, string> = {
+  simple: 'Simple',
+  intermediate: 'Intermédiaire',
+  elaborate: 'Élaboré',
+}
+
 // ─── Builders ────────────────────────────────────────────────────────────────
 
 export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput): string {
   // Extraire le mois depuis week_start_date (format YYYY-MM-DD)
   const month = parseInt(inputs.week_start_date.slice(5, 7), 10)
   const { name: monthName, text: seasonalText } = getSeasonalProduce(month)
+  const complexityLabel = COMPLEXITY_LABELS[ctx.preferences.cookingComplexity] ?? 'Intermédiaire'
 
   return SYSTEM_PROMPT_TEMPLATE
     .replace('{{display_name}}', ctx.user.displayName)
@@ -76,6 +83,7 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
       : 'aucune')
     .replace('{{local_specialties}}', ctx.preferences.localSpecialties ?? 'non renseignées')
     .replace('{{preferences_notes}}', ctx.preferences.notes ?? 'aucune')
+    .replace('{{cooking_complexity}}', complexityLabel)
     .replace('{{favorite_meals}}', fmtFavorites(ctx.favoriteMeals))
     .replace('{{rated_meals}}', fmtRatings(ctx.recentRatings))
     .replace('{{recent_meals}}', fmtRecentMeals(ctx.recentWeeklyMeals))

@@ -21,6 +21,7 @@ type WizardState = {
   dislikes: string[]
   allergies: string[]
   currentPhase: string
+  cookingComplexity: string
   // Étape 4 — Garde-manger
   pantryTargets: PantryDraft[]
   // Étape 5 — Notes
@@ -127,6 +128,7 @@ export function OnboardingPage() {
     dislikes: [],
     allergies: [],
     currentPhase: '',
+    cookingComplexity: 'intermediate',
     pantryTargets: DEFAULT_PANTRY.map((p) => ({ ...p, selected: true })),
     localSpecialties: '',
     notes: '',
@@ -160,6 +162,7 @@ export function OnboardingPage() {
       dislikes: state.dislikes,
       allergies: state.allergies,
       current_phase: state.currentPhase || null,
+      cooking_complexity: state.cookingComplexity,
     })
   }
 
@@ -284,15 +287,17 @@ function Step1Foyer({ state, update }: { state: WizardState; update: <K extends 
       <div className="flex gap-6">
         <div className="flex-1">
           <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
-          <input type="number" min={1} max={10} value={state.adults}
-            onChange={(e) => update('adults', Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+          <select value={state.adults} onChange={(e) => update('adults', parseInt(e.target.value))}
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+            {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
         </div>
         <div className="flex-1">
           <label className="block text-sm text-stone-600 mb-1">Enfants (&lt; 13 ans)</label>
-          <input type="number" min={0} max={10} value={state.children}
-            onChange={(e) => update('children', Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+          <select value={state.children} onChange={(e) => update('children', parseInt(e.target.value))}
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+            {[0,1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
         </div>
       </div>
       <div>
@@ -370,6 +375,15 @@ function Step3Prefs({ state, update }: { state: WizardState; update: <K extends 
           onChange={(e) => update('currentPhase', e.target.value)}
           placeholder="Ex : moins de viande rouge, phase sport"
           className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+      </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Complexité culinaire souhaitée</label>
+        <select value={state.cookingComplexity} onChange={(e) => update('cookingComplexity', e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="simple">Simple — plats rapides, techniques de base</option>
+          <option value="intermediate">Intermédiaire — techniques variées, quelques préparations élaborées</option>
+          <option value="elaborate">Élaboré — techniques avancées, préparations longues bienvenues</option>
+        </select>
       </div>
     </>
   )

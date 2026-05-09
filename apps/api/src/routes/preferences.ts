@@ -34,11 +34,12 @@ preferencesRouter.put('/', async (req, res) => {
     allergies,
     current_phase: currentPhase,
     dietary_targets: dietaryTargets,
+    cooking_complexity: cookingComplexity,
     local_specialties: localSpecialties,
     notes,
   } = parsed.data
 
-  const dbFields = { loves, dislikes, allergies, currentPhase, dietaryTargets, localSpecialties, notes }
+  const dbFields = { loves, dislikes, allergies, currentPhase, cookingComplexity, dietaryTargets, localSpecialties, notes }
 
   const existing = await db.query.userPreferences.findFirst({
     where: eq(userPreferences.userId, req.user.id),

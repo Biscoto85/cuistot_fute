@@ -7,12 +7,12 @@ export function AppLayout() {
 
   return (
     <div className="min-h-screen bg-stone-50">
-      <header className="border-b border-stone-200 bg-white px-6 py-4">
+      <header className="border-b border-stone-200 bg-white px-4 sm:px-6 py-3 sm:py-4">
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <span className="font-semibold text-stone-800 tracking-tight">Cuistot Futé</span>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3 sm:gap-4">
             {user && (
-              <span className="text-sm text-stone-500">{user.displayName ?? user.email}</span>
+              <span className="hidden sm:inline text-sm text-stone-500">{user.displayName ?? user.email}</span>
             )}
             <button
               onClick={auth.logout}
@@ -23,7 +23,7 @@ export function AppLayout() {
           </div>
         </div>
       </header>
-      <main className="mx-auto max-w-4xl px-6 py-8">
+      <main className="mx-auto max-w-4xl px-4 sm:px-6 py-6 sm:py-8">
         <Outlet />
       </main>
     </div>

@@ -100,12 +100,16 @@ export type PantryBulkInitInput = z.infer<typeof PantryBulkInitSchema>
 
 // ─── Preferences ──────────────────────────────────────────────────────────────
 
+export const COOKING_COMPLEXITY = ['simple', 'intermediate', 'elaborate'] as const
+export type CookingComplexity = (typeof COOKING_COMPLEXITY)[number]
+
 export const PreferencesUpdateSchema = z.object({
   loves: z.array(z.string().min(1)).optional(),
   dislikes: z.array(z.string().min(1)).optional(),
   allergies: z.array(z.string().min(1)).optional(),
   current_phase: z.string().max(200).nullish(),
   dietary_targets: z.record(z.string()).nullish(),
+  cooking_complexity: z.enum(COOKING_COMPLEXITY).optional(),
   local_specialties: z.string().max(1000).nullish(),
   notes: z.string().max(1000).nullish(),
 })

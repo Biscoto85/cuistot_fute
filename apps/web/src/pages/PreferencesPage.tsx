@@ -15,6 +15,7 @@ type Preferences = {
   loves: string[]; dislikes: string[]; allergies: string[]
   currentPhase: string | null; dietaryTargets: Record<string, string> | null
   localSpecialties: string | null; notes: string | null
+  cookingComplexity: string | null
 }
 type PantryTarget = {
   id: string; name: string; category: PantryCategory; targetQuantity: string; unit: PantryUnit
@@ -114,15 +115,17 @@ function FoyerSection() {
       <div className="flex gap-6">
         <div className="flex-1">
           <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
-          <input type="number" min={1} max={10} value={getAdults()}
-            onChange={(e) => setAdults(Math.max(1, parseInt(e.target.value) || 1))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+          <select value={getAdults()} onChange={(e) => setAdults(parseInt(e.target.value))}
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+            {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
         </div>
         <div className="flex-1">
           <label className="block text-sm text-stone-600 mb-1">Enfants (&lt; 13 ans)</label>
-          <input type="number" min={0} max={10} value={getChildren()}
-            onChange={(e) => setChildren(Math.max(0, parseInt(e.target.value) || 0))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+          <select value={getChildren()} onChange={(e) => setChildren(parseInt(e.target.value))}
+            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+            {[0,1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
+          </select>
         </div>
       </div>
       <div>
@@ -274,6 +277,7 @@ function PrefsSection() {
   const [dislikes, setDislikes] = useState<string[] | null>(null)
   const [allergies, setAllergies] = useState<string[] | null>(null)
   const [phase, setPhase] = useState<string | null>(null)
+  const [complexity, setComplexity] = useState<string | null>(null)
   const [localSpecialties, setLocalSpecialties] = useState<string | null>(null)
   const [notes, setNotes] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -288,6 +292,7 @@ function PrefsSection() {
       dislikes: get(dislikes, prefs?.dislikes, []),
       allergies: get(allergies, prefs?.allergies, []),
       current_phase: get(phase, prefs?.currentPhase, '') || null,
+      cooking_complexity: get(complexity, prefs?.cookingComplexity, 'intermediate') || 'intermediate',
       local_specialties: get(localSpecialties, prefs?.localSpecialties, '') || null,
       notes: get(notes, prefs?.notes, '') || null,
     }),
@@ -314,6 +319,16 @@ function PrefsSection() {
           onChange={(e) => setPhase(e.target.value)}
           placeholder="moins de viande rouge, phase sport…"
           className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none" />
+      </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Complexité culinaire souhaitée</label>
+        <select value={get(complexity, prefs?.cookingComplexity, 'intermediate') ?? 'intermediate'}
+          onChange={(e) => setComplexity(e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="simple">Simple — plats rapides, techniques de base</option>
+          <option value="intermediate">Intermédiaire — techniques variées, quelques préparations élaborées</option>
+          <option value="elaborate">Élaboré — techniques avancées, préparations longues bienvenues</option>
+        </select>
       </div>
       <div>
         <label className="block text-sm text-stone-600 mb-1">Spécialités locales</label>

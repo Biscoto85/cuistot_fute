@@ -12,6 +12,7 @@ export const userPreferences = pgTable('user_preferences', {
   // allergies est STRICT : le LLM ne doit jamais en dévier, contrairement aux dislikes.
   allergies: jsonb('allergies').$type<string[]>().notNull().default([]),
   currentPhase: text('current_phase'),
+  cookingComplexity: text('cooking_complexity').notNull().default('intermediate'),
   dietaryTargets: jsonb('dietary_targets').$type<Record<string, string>>(),
   localSpecialties: text('local_specialties'),
   notes: text('notes'),
