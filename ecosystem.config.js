@@ -3,8 +3,8 @@ module.exports = {
   apps: [
     {
       name: 'cuistot-api',
-      script: 'apps/api/dist/index.js',
-      cwd: '/var/www/cuistot_fute',
+      script: 'dist/index.js',
+      cwd: '/var/www/cuistot_fute/apps/api',
       instances: 1,
       autorestart: true,
       watch: false,
