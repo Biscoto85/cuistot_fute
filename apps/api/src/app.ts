@@ -19,6 +19,9 @@ import { usersRouter } from '@/routes/users'
 export function createApp() {
   const app = express()
 
+  // Nginx reverse proxy — nécessaire pour que express-rate-limit identifie correctement les IPs
+  app.set('trust proxy', 1)
+
   app.use(httpLogger)
   app.use(cors({ origin: process.env.CORS_ORIGIN, credentials: true }))
   app.use(express.json())
