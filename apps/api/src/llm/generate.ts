@@ -3,11 +3,13 @@ import { PlanOutputSchema } from '@cuistot/shared'
 import { db } from '@/db'
 import { llmLogs } from '@/db/schema'
 import { logger } from '@/lib/logger'
+import { getSetting } from '@/lib/settings'
 import { anthropic } from './client'
-import { buildRegenerateUserMessage, buildRetryMessage, buildSystemPrompt, buildUserMessage, PROMPT_VERSION } from './prompt-builder'
+import { buildRegenerateUserMessage, buildRetryMessage, buildSystemPrompt, buildUserMessage } from './prompt-builder'
+import { DEFAULT_PROMPT_VERSION, PROMPT_REGISTRY } from './prompts/registry'
 import type { LlmLogKind, LlmUserContext, RegenerateContext } from './types'
 
-const MODEL = 'claude-sonnet-4-6'
+const DEFAULT_MODEL = 'claude-sonnet-4-6'
 const MAX_TOKENS = 8096
 
 // Prix Claude Sonnet 4.6 (USD/token, source Anthropic pricing)
@@ -53,6 +55,7 @@ function estimateCostEur(inputTokens: number, outputTokens: number): number {
 async function writeLlmLog(params: {
   userId: string
   kind: LlmLogKind
+  promptVersion: string
   systemPrompt: string
   userPrompt: string
   rawResponse: string
@@ -66,7 +69,7 @@ async function writeLlmLog(params: {
   await db.insert(llmLogs).values({
     userId: params.userId,
     kind: params.kind,
-    promptVersion: PROMPT_VERSION,
+    promptVersion: params.promptVersion,
     systemPrompt: params.systemPrompt,
     userPrompt: params.userPrompt,
     responseRaw: params.rawResponse,
@@ -89,12 +92,20 @@ export async function generatePlan(
   regenerateCtx?: RegenerateContext,
 ): Promise<PlanOutput> {
   const startMs = Date.now()
-  const systemPrompt = buildSystemPrompt(context, inputs)
+
+  // Modèle et version de prompt pilotables par l'admin (app_settings) ;
+  // fallback sur les valeurs par défaut si la table est absente ou la version inconnue.
+  const requestedVersion = await getSetting('prompt_version', DEFAULT_PROMPT_VERSION)
+  const promptVersion = PROMPT_REGISTRY[requestedVersion] ? requestedVersion : DEFAULT_PROMPT_VERSION
+  const template = PROMPT_REGISTRY[promptVersion]
+  const model = await getSetting('llm_model', DEFAULT_MODEL)
+
+  const systemPrompt = buildSystemPrompt(context, inputs, template)
   const userPrompt = regenerateCtx
     ? buildRegenerateUserMessage(inputs, regenerateCtx.feedback, regenerateCtx.previousPlanOutput)
     : buildUserMessage(inputs)
 
-  logger.info({ promptVersion: PROMPT_VERSION, kind }, 'llm: démarrage génération')
+  logger.info({ promptVersion, model, kind }, 'llm: démarrage génération')
 
   let rawResponse = ''
   let totalInputTokens = 0
@@ -103,7 +114,7 @@ export async function generatePlan(
   try {
     // ── Premier appel ──
     const resp1 = await anthropic.messages.create({
-      model: MODEL,
+      model,
       max_tokens: MAX_TOKENS,
       system: systemPrompt,
       messages: [{ role: 'user', content: userPrompt }],
@@ -122,7 +133,7 @@ export async function generatePlan(
 
       const retryMsg = buildRetryMessage(String(parseErr1))
       const resp2 = await anthropic.messages.create({
-        model: MODEL,
+        model,
         max_tokens: MAX_TOKENS,
         system: systemPrompt,
         messages: [
@@ -144,7 +155,7 @@ export async function generatePlan(
     logger.info({ latencyMs, inputTokens: totalInputTokens, outputTokens: totalOutputTokens }, 'llm: succès')
 
     await writeLlmLog({
-      userId, kind, systemPrompt, userPrompt, rawResponse,
+      userId, kind, promptVersion, systemPrompt, userPrompt, rawResponse,
       parsedJson: plan, validationError: null,
       inputTokens: totalInputTokens, outputTokens: totalOutputTokens, latencyMs,
     })
@@ -156,7 +167,7 @@ export async function generatePlan(
     logger.error({ error: errMsg, latencyMs }, 'llm: échec définitif')
 
     await writeLlmLog({
-      userId, kind, systemPrompt, userPrompt, rawResponse,
+      userId, kind, promptVersion, systemPrompt, userPrompt, rawResponse,
       parsedJson: null, validationError: errMsg,
       inputTokens: totalInputTokens, outputTokens: totalOutputTokens, latencyMs,
     })

@@ -16,6 +16,7 @@ import { FavoritesPage } from '@/pages/FavoritesPage'
 import { PreferencesPage } from '@/pages/PreferencesPage'
 import { RatePage } from '@/pages/RatePage'
 import { LegalPage } from '@/pages/LegalPage'
+import { AdminPage } from '@/pages/AdminPage'
 import { PlaceholderPage } from '@/pages/PlaceholderPage'
 import { PrintPlanPage } from '@/pages/PrintPlanPage'
 
@@ -50,6 +51,7 @@ export default function App() {
                 <Route path="/favorites" element={<FavoritesPage />} />
                 <Route path="/preferences" element={<PreferencesPage />} />
                 <Route path="/legal" element={<LegalPage />} />
+                <Route path="/admin" element={<AdminPage />} />
               </Route>
             </Route>
             <Route path="*" element={<Navigate to="/app" replace />} />

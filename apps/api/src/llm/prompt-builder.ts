@@ -75,7 +75,11 @@ const TIER_LABELS: Record<string, string> = {
 
 // ─── Builders ────────────────────────────────────────────────────────────────
 
-export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput): string {
+export function buildSystemPrompt(
+  ctx: LlmUserContext,
+  inputs: GeneratePlanInput,
+  template: string = SYSTEM_PROMPT_TEMPLATE,
+): string {
   // Extraire le mois depuis week_start_date (format YYYY-MM-DD)
   const month = parseInt(inputs.week_start_date.slice(5, 7), 10)
   const { name: monthName, text: seasonalText } = getSeasonalProduce(month)
@@ -90,7 +94,7 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
       : `${ctx.household.children} enfant(s) de moins de 13 ans`
     : 'aucun enfant'
 
-  return SYSTEM_PROMPT_TEMPLATE
+  return template
     .replace('{{display_name}}', ctx.user.displayName)
     .replace('{{adults}}', String(ctx.household.adults))
     .replace('{{children_detail}}', childrenDetail)

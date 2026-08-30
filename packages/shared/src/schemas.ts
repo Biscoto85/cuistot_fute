@@ -293,6 +293,20 @@ export const PlanOutputSchema = z.object({
 
 export type PlanOutput = z.infer<typeof PlanOutputSchema>
 
+// ─── Admin ────────────────────────────────────────────────────────────────────
+
+export const AdminCreditsAdjustSchema = z.object({
+  delta: z.number().int().min(-1000).max(1000).refine((d) => d !== 0, 'delta ne peut pas être 0'),
+})
+
+export const AdminSettingsUpdateSchema = z.object({
+  llm_model: z.string().min(1).max(100).optional(),
+  prompt_version: z.string().min(1).max(20).optional(),
+})
+
+export type AdminCreditsAdjustInput = z.infer<typeof AdminCreditsAdjustSchema>
+export type AdminSettingsUpdateInput = z.infer<typeof AdminSettingsUpdateSchema>
+
 // ─── Meal entries & ratings ───────────────────────────────────────────────────
 
 export const MealEntryUpdateSchema = z.object({

@@ -5,7 +5,9 @@ import express from 'express'
 import { db } from '@/db'
 import { httpLogger } from '@/lib/logger'
 import { errorHandler } from '@/middleware/errorHandler'
+import { requireAdmin } from '@/middleware/requireAdmin'
 import { requireAuth } from '@/middleware/requireAuth'
+import { adminRouter } from '@/routes/admin'
 import { authRouter } from '@/routes/auth'
 import { householdRouter } from '@/routes/household'
 import { locationsRouter } from '@/routes/locations'
@@ -39,6 +41,7 @@ export function createApp() {
   app.use('/api/meal-entries', requireAuth, mealEntriesRouter)
   app.use('/api/ratings', requireAuth, ratingsRouter)
   app.use('/api/users', requireAuth, usersRouter)
+  app.use('/api/admin', requireAuth, requireAdmin, adminRouter)
 
   // ─── Healthcheck ────────────────────────────────────────────────────────────
   app.get('/api/health', async (_req, res) => {

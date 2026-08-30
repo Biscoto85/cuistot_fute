@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Link, Outlet } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 
 export function AppLayout() {
@@ -20,6 +20,11 @@ export function AppLayout() {
               >
                 {user.credits} crédit{user.credits > 1 ? 's' : ''}
               </span>
+            )}
+            {user?.isAdmin && (
+              <Link to="/admin" className="text-sm text-stone-400 hover:text-stone-700 transition-colors">
+                Admin
+              </Link>
             )}
             {user && (
               <span className="hidden sm:inline text-sm text-stone-500">{user.displayName ?? user.email}</span>
