@@ -17,7 +17,7 @@ vi.mock('@/llm/client', () => ({
 import { db } from '@/db'
 import { anthropic } from '@/llm/client'
 import { generatePlan } from '@/llm/generate'
-import { buildSystemPrompt, buildUserMessage, buildRetryMessage } from '@/llm/prompt-builder'
+import { buildSystemPrompt, buildUserMessage, buildRetryMessage, PROMPT_VERSION } from '@/llm/prompt-builder'
 import type { LlmUserContext } from '@/llm/types'
 import type { GeneratePlanInput } from '@cuistot/shared'
 
@@ -35,13 +35,16 @@ const ctx: LlmUserContext = {
     allergies: [],
     currentPhase: null,
     cookingComplexity: 'intermediate',
+    dietRegime: 'flexitarien',
+    fishOk: true,
+    menuTier: 'normal',
     dietaryTargets: null,
     localSpecialties: 'Senlis — bons maraîchers du marché',
     notes: null,
   },
   locations: [{ id: LOC_UUID, name: 'Biocoop Senlis', kind: 'bio', notes: null }],
   pantryTargets: [
-    { id: PT_UUID, name: 'Lentilles vertes', targetQuantity: '2', unit: 'kg', rotationMonths: 6, lastPurchasedAt: '2025-01-15', priority: 'essentiel' },
+    { id: PT_UUID, name: 'Lentilles vertes', targetQuantity: '2', unit: 'kg', rotationMonths: 6, lastPurchasedAt: '2025-01-15', priority: 'essentiel', stockStatus: 'ok' },
   ],
   recentWeeklyMeals: [],
   recentRatings: [],
@@ -191,7 +194,7 @@ describe('generatePlan — cost tracking', () => {
     expect(cost).toBeGreaterThan(0)
     expect(capturedValues.tokensInput).toBe(2000)
     expect(capturedValues.tokensOutput).toBe(1000)
-    expect(capturedValues.promptVersion).toBe('v1')
+    expect(capturedValues.promptVersion).toBe(PROMPT_VERSION)
   })
 })
 

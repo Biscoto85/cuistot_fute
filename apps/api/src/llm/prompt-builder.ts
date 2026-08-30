@@ -1,5 +1,5 @@
 import type { GeneratePlanInput, PlanOutput } from '@cuistot/shared'
-import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v3'
+import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v4'
 import { getSeasonalProduce } from './seasons'
 import type { LlmUserContext } from './types'
 
@@ -28,7 +28,7 @@ function fmtPantry(targets: LlmUserContext['pantryTargets']): string {
       const lastBought = t.lastPurchasedAt
         ? `dernier achat ${t.lastPurchasedAt}`
         : 'jamais acheté'
-      return `- ${t.name} : cible ${t.targetQuantity} ${t.unit}, rotation ${t.rotationMonths} mois, ${lastBought} (id: ${t.id})`
+      return `- ${t.name} : stock ${t.stockStatus}, priorité ${t.priority}, cible ${t.targetQuantity} ${t.unit}, rotation ${t.rotationMonths} mois, ${lastBought} (id: ${t.id})`
     })
     .join('\n')
 }
@@ -61,6 +61,18 @@ const COMPLEXITY_LABELS: Record<string, string> = {
   elaborate: 'Élaboré',
 }
 
+const REGIME_LABELS: Record<string, string> = {
+  vegetarien: 'végétarien',
+  flexitarien: 'flexitarien',
+  carnivore: 'carnivore',
+}
+
+const TIER_LABELS: Record<string, string> = {
+  economique: 'économique',
+  normal: 'normal',
+  luxe: 'luxe',
+}
+
 // ─── Builders ────────────────────────────────────────────────────────────────
 
 export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput): string {
@@ -68,6 +80,9 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
   const month = parseInt(inputs.week_start_date.slice(5, 7), 10)
   const { name: monthName, text: seasonalText } = getSeasonalProduce(month)
   const complexityLabel = COMPLEXITY_LABELS[ctx.preferences.cookingComplexity] ?? 'Intermédiaire'
+  const regimeLabel = REGIME_LABELS[ctx.preferences.dietRegime] ?? 'flexitarien'
+  const tierLabel = TIER_LABELS[ctx.preferences.menuTier] ?? 'normal'
+  const fishRule = ctx.preferences.fishOk ? 'autorisés' : 'NON autorisés'
 
   return SYSTEM_PROMPT_TEMPLATE
     .replace('{{display_name}}', ctx.user.displayName)
@@ -84,6 +99,9 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
     .replace('{{local_specialties}}', ctx.preferences.localSpecialties ?? 'non renseignées')
     .replace('{{preferences_notes}}', ctx.preferences.notes ?? 'aucune')
     .replace('{{cooking_complexity}}', complexityLabel)
+    .replace('{{diet_regime}}', regimeLabel)
+    .replace('{{fish_rule}}', fishRule)
+    .replace('{{menu_tier}}', tierLabel)
     .replace('{{favorite_meals}}', fmtFavorites(ctx.favoriteMeals))
     .replace('{{rated_meals}}', fmtRatings(ctx.recentRatings))
     .replace('{{recent_meals}}', fmtRecentMeals(ctx.recentWeeklyMeals))

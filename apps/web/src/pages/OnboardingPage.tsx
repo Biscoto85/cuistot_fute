@@ -22,6 +22,9 @@ type WizardState = {
   allergies: string[]
   currentPhase: string
   cookingComplexity: string
+  dietRegime: string
+  fishOk: boolean
+  menuTier: string
   // Étape 4 — Garde-manger
   pantryTargets: PantryDraft[]
   // Étape 5 — Notes
@@ -49,14 +52,44 @@ const KIND_LABELS: Record<LocationKind, string> = {
 }
 
 const DEFAULT_PANTRY: Omit<PantryDraft, 'selected'>[] = [
+  // Céréales
   { name: 'Riz basmati', category: 'cereales', targetQuantity: 1.5, unit: 'kg', priority: 'essentiel' },
   { name: 'Pâtes sèches', category: 'cereales', targetQuantity: 1, unit: 'kg', priority: 'essentiel' },
+  { name: 'Quinoa', category: 'cereales', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
+  { name: 'Flocons d\'avoine', category: 'cereales', targetQuantity: 1, unit: 'kg', priority: 'essentiel' },
+  { name: 'Semoule', category: 'cereales', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
+  { name: 'Polenta', category: 'cereales', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
+  // Légumineuses
   { name: 'Lentilles vertes', category: 'legumineuses', targetQuantity: 1, unit: 'kg', priority: 'essentiel' },
+  { name: 'Lentilles corail', category: 'legumineuses', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
   { name: 'Pois chiches secs', category: 'legumineuses', targetQuantity: 500, unit: 'g', priority: 'essentiel' },
+  { name: 'Haricots blancs secs', category: 'legumineuses', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
+  // Conserves
   { name: 'Conserves tomates pelées', category: 'conserves', targetQuantity: 6, unit: 'boites', priority: 'essentiel' },
+  { name: 'Thon au naturel', category: 'conserves', targetQuantity: 4, unit: 'boites', priority: 'secondaire' },
+  { name: 'Sardines à l\'huile', category: 'conserves', targetQuantity: 3, unit: 'boites', priority: 'secondaire' },
+  { name: 'Lait de coco', category: 'conserves', targetQuantity: 3, unit: 'boites', priority: 'secondaire' },
+  // Huiles & vinaigres
   { name: 'Huile d\'olive extra-vierge', category: 'huiles_vinaigres', targetQuantity: 1, unit: 'L', priority: 'essentiel' },
   { name: 'Vinaigre balsamique', category: 'huiles_vinaigres', targetQuantity: 1, unit: 'pieces', priority: 'secondaire' },
+  { name: 'Vinaigre de cidre', category: 'huiles_vinaigres', targetQuantity: 1, unit: 'pieces', priority: 'secondaire' },
+  // Fruits à coque & graines
+  { name: 'Amandes', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'essentiel' },
+  { name: 'Noisettes', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'secondaire' },
+  { name: 'Noix', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'secondaire' },
+  { name: 'Graines de courge', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'secondaire' },
+  { name: 'Graines de tournesol', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'secondaire' },
+  { name: 'Graines de sésame', category: 'secs_divers', targetQuantity: 100, unit: 'g', priority: 'secondaire' },
+  { name: 'Fruits secs (abricots, raisins)', category: 'secs_divers', targetQuantity: 250, unit: 'g', priority: 'secondaire' },
+  { name: 'Chocolat noir', category: 'secs_divers', targetQuantity: 200, unit: 'g', priority: 'secondaire' },
+  // Condiments
+  { name: 'Moutarde', category: 'condiments', targetQuantity: 1, unit: 'pieces', priority: 'essentiel' },
+  { name: 'Sauce soja', category: 'condiments', targetQuantity: 1, unit: 'pieces', priority: 'secondaire' },
+  { name: 'Bouillon (cubes)', category: 'condiments', targetQuantity: 1, unit: 'boites', priority: 'essentiel' },
+  // Sucres & farines
   { name: 'Farine T65', category: 'sucres_farines', targetQuantity: 1, unit: 'kg', priority: 'secondaire' },
+  { name: 'Miel', category: 'sucres_farines', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
+  { name: 'Sucre', category: 'sucres_farines', targetQuantity: 500, unit: 'g', priority: 'secondaire' },
 ]
 
 const STEP_LABELS = ['Foyer', 'Lieux', 'Préférences', 'Garde-manger', 'Notes']
@@ -129,6 +162,9 @@ export function OnboardingPage() {
     allergies: [],
     currentPhase: '',
     cookingComplexity: 'intermediate',
+    dietRegime: 'flexitarien',
+    fishOk: true,
+    menuTier: 'normal',
     pantryTargets: DEFAULT_PANTRY.map((p) => ({ ...p, selected: true })),
     localSpecialties: '',
     notes: '',
@@ -163,6 +199,9 @@ export function OnboardingPage() {
       allergies: state.allergies,
       current_phase: state.currentPhase || null,
       cooking_complexity: state.cookingComplexity,
+      diet_regime: state.dietRegime,
+      fish_ok: state.fishOk,
+      menu_tier: state.menuTier,
     })
   }
 
@@ -383,6 +422,29 @@ function Step3Prefs({ state, update }: { state: WizardState; update: <K extends 
           <option value="simple">Simple — plats rapides, techniques de base</option>
           <option value="intermediate">Intermédiaire — techniques variées, quelques préparations élaborées</option>
           <option value="elaborate">Élaboré — techniques avancées, préparations longues bienvenues</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Régime alimentaire</label>
+        <select value={state.dietRegime} onChange={(e) => update('dietRegime', e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="vegetarien">Végétarien — pas de viande ni charcuterie</option>
+          <option value="flexitarien">Flexitarien — 3 repas carnés max par semaine</option>
+          <option value="carnivore">Carnivore — protéines animales à chaque repas</option>
+        </select>
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" checked={state.fishOk} onChange={(e) => update('fishOk', e.target.checked)}
+          className="h-4 w-4 rounded border-stone-300 text-stone-800" />
+        <span className="text-sm text-stone-600">Poisson et fruits de mer autorisés</span>
+      </label>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Niveau de menu</label>
+        <select value={state.menuTier} onChange={(e) => update('menuTier', e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="economique">Économique — légumineuses, mijotés, coût minimal</option>
+          <option value="normal">Normal — équilibre coût / plaisir</option>
+          <option value="luxe">Luxe — beaux produits, le plaisir avant le coût</option>
         </select>
       </div>
     </>

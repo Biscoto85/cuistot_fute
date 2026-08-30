@@ -83,9 +83,10 @@ pantryTargetsRouter.post('/:id/restocked', async (req, res) => {
 
   const today = new Date().toISOString().slice(0, 10)
 
+  // Réappro = date d'achat mise à jour ET stock repassé à 'ok'
   const [updated] = await db
     .update(pantryTargets)
-    .set({ lastPurchasedAt: today })
+    .set({ lastPurchasedAt: today, stockStatus: 'ok' })
     .where(eq(pantryTargets.id, existing.id))
     .returning()
 

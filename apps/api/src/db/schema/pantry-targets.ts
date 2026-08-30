@@ -27,6 +27,8 @@ export const pantryUnitEnum = pgEnum('pantry_unit', [
 
 export const pantryPriorityEnum = pgEnum('pantry_priority', ['essentiel', 'secondaire'])
 
+export const pantryStockStatusEnum = pgEnum('pantry_stock_status', ['ok', 'bas', 'vide'])
+
 export const pantryTargets = pgTable('pantry_targets', {
   id: uuid('id').defaultRandom().primaryKey(),
   userId: uuid('user_id')
@@ -39,6 +41,8 @@ export const pantryTargets = pgTable('pantry_targets', {
   rotationMonths: integer('rotation_months').notNull().default(6),
   lastPurchasedAt: date('last_purchased_at'),
   priority: pantryPriorityEnum('priority').notNull(),
+  // État déclaré par l'utilisateur — 'vide' interdit au LLM de supposer l'article disponible
+  stockStatus: pantryStockStatusEnum('stock_status').notNull().default('ok'),
   // Nullable car l'utilisateur peut ne pas associer un lieu à chaque cible.
   // SET NULL si le lieu est supprimé plutôt que CASCADE (la cible doit survivre).
   preferredLocationId: uuid('preferred_location_id').references(() => userLocations.id, {

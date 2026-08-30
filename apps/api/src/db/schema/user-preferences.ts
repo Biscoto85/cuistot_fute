@@ -1,4 +1,4 @@
-import { jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { boolean, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const userPreferences = pgTable('user_preferences', {
@@ -13,6 +13,9 @@ export const userPreferences = pgTable('user_preferences', {
   allergies: jsonb('allergies').$type<string[]>().notNull().default([]),
   currentPhase: text('current_phase'),
   cookingComplexity: text('cooking_complexity').notNull().default('intermediate'),
+  dietRegime: text('diet_regime').notNull().default('flexitarien'),
+  fishOk: boolean('fish_ok').notNull().default(true),
+  menuTier: text('menu_tier').notNull().default('normal'),
   dietaryTargets: jsonb('dietary_targets').$type<Record<string, string>>(),
   localSpecialties: text('local_specialties'),
   notes: text('notes'),

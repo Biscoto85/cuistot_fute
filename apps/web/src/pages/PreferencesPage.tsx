@@ -3,8 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
-import { LOCATION_KINDS, PANTRY_CATEGORIES, PANTRY_UNITS, PANTRY_PRIORITIES } from '@cuistot/shared'
-import type { LocationKind, PantryCategory, PantryUnit, PantryPriority } from '@cuistot/shared'
+import { LOCATION_KINDS, PANTRY_CATEGORIES, PANTRY_UNITS, PANTRY_PRIORITIES, STOCK_STATUSES } from '@cuistot/shared'
+import type { LocationKind, PantryCategory, PantryUnit, PantryPriority, StockStatus } from '@cuistot/shared'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -16,10 +16,12 @@ type Preferences = {
   currentPhase: string | null; dietaryTargets: Record<string, string> | null
   localSpecialties: string | null; notes: string | null
   cookingComplexity: string | null
+  dietRegime: string | null; fishOk: boolean | null; menuTier: string | null
 }
 type PantryTarget = {
   id: string; name: string; category: PantryCategory; targetQuantity: string; unit: PantryUnit
   rotationMonths: number; priority: PantryPriority; lastPurchasedAt: string | null
+  stockStatus: StockStatus
   preferredLocationId: string | null; notes: string | null
 }
 
@@ -38,6 +40,14 @@ const CATEGORY_LABELS: Record<PantryCategory, string> = {
   cereales: 'Céréales', legumineuses: 'Légumineuses', conserves: 'Conserves',
   huiles_vinaigres: 'Huiles & Vinaigres', epices: 'Épices', condiments: 'Condiments',
   boissons: 'Boissons', sucres_farines: 'Sucres & Farines', secs_divers: 'Secs divers', autre: 'Autre',
+}
+
+const STOCK_LABELS: Record<StockStatus, string> = { ok: 'OK', bas: 'Bas', vide: 'Vide' }
+
+const STOCK_ACTIVE_CLASSES: Record<StockStatus, string> = {
+  ok: 'bg-green-100 border-green-300 text-green-700',
+  bas: 'bg-amber-100 border-amber-300 text-amber-700',
+  vide: 'bg-red-100 border-red-300 text-red-700',
 }
 
 // ─── Composant TagInput ───────────────────────────────────────────────────────
@@ -278,6 +288,9 @@ function PrefsSection() {
   const [allergies, setAllergies] = useState<string[] | null>(null)
   const [phase, setPhase] = useState<string | null>(null)
   const [complexity, setComplexity] = useState<string | null>(null)
+  const [regime, setRegime] = useState<string | null>(null)
+  const [fishOk, setFishOk] = useState<boolean | null>(null)
+  const [tier, setTier] = useState<string | null>(null)
   const [localSpecialties, setLocalSpecialties] = useState<string | null>(null)
   const [notes, setNotes] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
@@ -293,6 +306,9 @@ function PrefsSection() {
       allergies: get(allergies, prefs?.allergies, []),
       current_phase: get(phase, prefs?.currentPhase, '') || null,
       cooking_complexity: get(complexity, prefs?.cookingComplexity, 'intermediate') || 'intermediate',
+      diet_regime: get(regime, prefs?.dietRegime, 'flexitarien') || 'flexitarien',
+      fish_ok: get(fishOk, prefs?.fishOk, true) ?? true,
+      menu_tier: get(tier, prefs?.menuTier, 'normal') || 'normal',
       local_specialties: get(localSpecialties, prefs?.localSpecialties, '') || null,
       notes: get(notes, prefs?.notes, '') || null,
     }),
@@ -328,6 +344,32 @@ function PrefsSection() {
           <option value="simple">Simple — plats rapides, techniques de base</option>
           <option value="intermediate">Intermédiaire — techniques variées, quelques préparations élaborées</option>
           <option value="elaborate">Élaboré — techniques avancées, préparations longues bienvenues</option>
+        </select>
+      </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Régime alimentaire</label>
+        <select value={get(regime, prefs?.dietRegime, 'flexitarien') ?? 'flexitarien'}
+          onChange={(e) => setRegime(e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="vegetarien">Végétarien — pas de viande ni charcuterie</option>
+          <option value="flexitarien">Flexitarien — 3 repas carnés max par semaine</option>
+          <option value="carnivore">Carnivore — protéines animales à chaque repas</option>
+        </select>
+      </div>
+      <label className="flex items-center gap-2 cursor-pointer">
+        <input type="checkbox" checked={get(fishOk, prefs?.fishOk, true) ?? true}
+          onChange={(e) => setFishOk(e.target.checked)}
+          className="h-4 w-4 rounded border-stone-300 text-stone-800" />
+        <span className="text-sm text-stone-600">Poisson et fruits de mer autorisés</span>
+      </label>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Niveau de menu</label>
+        <select value={get(tier, prefs?.menuTier, 'normal') ?? 'normal'}
+          onChange={(e) => setTier(e.target.value)}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          <option value="economique">Économique — légumineuses, mijotés, coût minimal</option>
+          <option value="normal">Normal — équilibre coût / plaisir</option>
+          <option value="luxe">Luxe — beaux produits, le plaisir avant le coût</option>
         </select>
       </div>
       <div>
@@ -408,6 +450,13 @@ function PantrySection() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pantry-targets'] }),
   })
 
+  const stockMutation = useMutation({
+    mutationFn: ({ id, status }: { id: string; status: StockStatus }) =>
+      api.patch(`/api/pantry-targets/${id}`, { stockStatus: status }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['pantry-targets'] }),
+    onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur.'),
+  })
+
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.delete(`/api/pantry-targets/${id}`),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['pantry-targets'] }),
@@ -461,6 +510,20 @@ function PantrySection() {
                   {t.targetQuantity} {t.unit} · {CATEGORY_LABELS[t.category]} · {t.priority}
                   {t.lastPurchasedAt && ` · acheté ${t.lastPurchasedAt}`}
                 </p>
+                <div className="mt-1.5 flex gap-1">
+                  {STOCK_STATUSES.map((s) => (
+                    <button key={s} type="button"
+                      onClick={() => t.stockStatus !== s && stockMutation.mutate({ id: t.id, status: s })}
+                      disabled={stockMutation.isPending}
+                      className={`rounded-full px-2.5 py-0.5 text-xs border transition-colors ${
+                        t.stockStatus === s
+                          ? STOCK_ACTIVE_CLASSES[s]
+                          : 'border-stone-200 text-stone-400 hover:text-stone-600 hover:bg-stone-50'
+                      }`}>
+                      {STOCK_LABELS[s]}
+                    </button>
+                  ))}
+                </div>
               </div>
               <div className="flex gap-2 shrink-0 flex-wrap justify-end">
                 <button onClick={() => restockedMutation.mutate(t.id)} disabled={restockedMutation.isPending}

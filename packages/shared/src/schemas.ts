@@ -73,9 +73,14 @@ export const PANTRY_UNITS = ['kg', 'g', 'L', 'mL', 'pieces', 'boites', 'sachets'
 
 export const PANTRY_PRIORITIES = ['essentiel', 'secondaire'] as const
 
+// État de stock déclaré par l'utilisateur (pas un inventaire au gramme près).
+// 'vide' → le LLM ne doit pas supposer l'article disponible et l'ajoute aux courses si besoin.
+export const STOCK_STATUSES = ['ok', 'bas', 'vide'] as const
+
 export type PantryCategory = (typeof PANTRY_CATEGORIES)[number]
 export type PantryUnit = (typeof PANTRY_UNITS)[number]
 export type PantryPriority = (typeof PANTRY_PRIORITIES)[number]
+export type StockStatus = (typeof STOCK_STATUSES)[number]
 
 export const PantryTargetCreateSchema = z.object({
   name: z.string().min(1).max(200),
@@ -84,6 +89,7 @@ export const PantryTargetCreateSchema = z.object({
   unit: z.enum(PANTRY_UNITS),
   rotationMonths: z.number().int().min(1).default(6),
   priority: z.enum(PANTRY_PRIORITIES),
+  stockStatus: z.enum(STOCK_STATUSES).default('ok'),
   preferredLocationId: z.string().uuid().nullish(),
   notes: z.string().max(1000).nullish(),
 })
@@ -103,6 +109,14 @@ export type PantryBulkInitInput = z.infer<typeof PantryBulkInitSchema>
 export const COOKING_COMPLEXITY = ['simple', 'intermediate', 'elaborate'] as const
 export type CookingComplexity = (typeof COOKING_COMPLEXITY)[number]
 
+// Régime carné du foyer — préférence durable, éditable dans le profil
+export const DIET_REGIMES = ['vegetarien', 'flexitarien', 'carnivore'] as const
+export type DietRegime = (typeof DIET_REGIMES)[number]
+
+// Niveau de menu — oriente le coût et le standing des plans générés
+export const MENU_TIERS = ['economique', 'normal', 'luxe'] as const
+export type MenuTier = (typeof MENU_TIERS)[number]
+
 export const PreferencesUpdateSchema = z.object({
   loves: z.array(z.string().min(1)).optional(),
   dislikes: z.array(z.string().min(1)).optional(),
@@ -110,6 +124,9 @@ export const PreferencesUpdateSchema = z.object({
   current_phase: z.string().max(200).nullish(),
   dietary_targets: z.record(z.string()).nullish(),
   cooking_complexity: z.enum(COOKING_COMPLEXITY).optional(),
+  diet_regime: z.enum(DIET_REGIMES).optional(),
+  fish_ok: z.boolean().optional(),
+  menu_tier: z.enum(MENU_TIERS).optional(),
   local_specialties: z.string().max(1000).nullish(),
   notes: z.string().max(1000).nullish(),
 })

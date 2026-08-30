@@ -97,6 +97,9 @@ export async function loadUserContext(userId: string): Promise<LlmUserContext> {
       allergies: preferences?.allergies ?? [],
       currentPhase: preferences?.currentPhase ?? null,
       cookingComplexity: preferences?.cookingComplexity ?? 'intermediate',
+      dietRegime: preferences?.dietRegime ?? 'flexitarien',
+      fishOk: preferences?.fishOk ?? true,
+      menuTier: preferences?.menuTier ?? 'normal',
       dietaryTargets: preferences?.dietaryTargets ?? null,
       localSpecialties: preferences?.localSpecialties ?? null,
       notes: preferences?.notes ?? null,
@@ -115,6 +118,7 @@ export async function loadUserContext(userId: string): Promise<LlmUserContext> {
       rotationMonths: t.rotationMonths,
       lastPurchasedAt: t.lastPurchasedAt ?? null,
       priority: t.priority,
+      stockStatus: t.stockStatus,
     })),
     recentWeeklyMeals,
     recentRatings: ratings.map((r) => ({

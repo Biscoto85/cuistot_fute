@@ -16,6 +16,9 @@ export type LlmUserContext = {
     allergies: string[]
     currentPhase: string | null
     cookingComplexity: string
+    dietRegime: string
+    fishOk: boolean
+    menuTier: string
     dietaryTargets: Record<string, string> | null
     localSpecialties: string | null
     notes: string | null
@@ -34,6 +37,7 @@ export type LlmUserContext = {
     rotationMonths: number
     lastPurchasedAt: string | null
     priority: string
+    stockStatus: string
   }>
   // Plans des 8 dernières semaines pour l'anti-répétition
   recentWeeklyMeals: Array<{
