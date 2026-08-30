@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useParams, useNavigate, Link } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { api, ApiError } from '@/lib/api'
+import { useAuth } from '@/contexts/AuthContext'
 import { fmtDate } from '@/lib/homeMode'
 import type { PlanOutput } from '@cuistot/shared'
 
@@ -128,12 +129,16 @@ function ExtraMealsBlock({ title, block }: {
 
 function RegenerateModal({ planId, onClose }: { planId: string; onClose: () => void }) {
   const navigate = useNavigate()
+  const { refresh } = useAuth()
   const [feedback, setFeedback] = useState('')
   const [error, setError] = useState<string | null>(null)
 
   const { mutate, isPending } = useMutation({
     mutationFn: () => api.post<{ plan: { id: string } }>(`/api/plans/${planId}/regenerate`, { feedback }),
-    onSuccess: (data) => navigate(`/plan/${data.plan.id}`),
+    onSuccess: (data) => {
+      refresh() // met à jour le solde de crédits dans le header
+      navigate(`/plan/${data.plan.id}`)
+    },
     onError: (err) => setError(err instanceof ApiError ? err.message : 'Erreur.'),
   })
 
@@ -141,6 +146,9 @@ function RegenerateModal({ planId, onClose }: { planId: string; onClose: () => v
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
       <div className="bg-white rounded-xl border border-stone-200 p-6 w-full max-w-md shadow-lg space-y-4">
         <h2 className="text-base font-semibold text-stone-800">Régénérer avec feedback</h2>
+        <p className="text-xs text-stone-400">
+          Gratuite une fois dans la minute qui suit la génération. Au-delà, 1 crédit.
+        </p>
         <textarea
           value={feedback}
           onChange={(e) => setFeedback(e.target.value)}

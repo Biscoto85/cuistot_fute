@@ -26,6 +26,12 @@ export class UnauthorizedError extends AppError {
   }
 }
 
+export class PaymentRequiredError extends AppError {
+  constructor(message = 'Crédits insuffisants') {
+    super(402, message)
+  }
+}
+
 export class ForbiddenError extends AppError {
   constructor(message = 'Accès interdit') {
     super(403, message)

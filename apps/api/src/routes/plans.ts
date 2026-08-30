@@ -3,13 +3,17 @@ import { Router } from 'express'
 import { GeneratePlanInputSchema, RegeneratePlanInputSchema } from '@cuistot/shared'
 import type { PlanOutput } from '@cuistot/shared'
 import { db } from '@/db'
-import { mealEntries, weeklyPlans } from '@/db/schema'
+import { mealEntries, users, weeklyPlans } from '@/db/schema'
 import type { NewMealEntry } from '@/db/schema'
-import { BadRequestError, ConflictError, NotFoundError } from '@/lib/errors'
+import { consumeCredit } from '@/lib/credits'
+import { BadRequestError, ConflictError, NotFoundError, PaymentRequiredError } from '@/lib/errors'
 import { loadUserContext } from '@/llm/context-loader'
 import { generatePlan } from '@/llm/generate'
 
 export const plansRouter = Router()
+
+// Fenêtre de régénération gratuite après la génération initiale
+const FREE_REGEN_WINDOW_MS = 60_000
 
 // POST /api/plans/generate
 plansRouter.post('/generate', async (req, res) => {
@@ -17,6 +21,16 @@ plansRouter.post('/generate', async (req, res) => {
   if (!parsed.success) throw new BadRequestError('Données invalides')
   const inputs = parsed.data
   const userId = req.user.id
+
+  // Contrôle des crédits — les admins ne consomment pas
+  const me = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { credits: true, isAdmin: true },
+  })
+  if (!me) throw new NotFoundError('Utilisateur introuvable')
+  if (!me.isAdmin && me.credits < 1) {
+    throw new PaymentRequiredError('Plus de crédits disponibles. Rechargez votre compte pour générer un nouveau plan.')
+  }
 
   // Chargement du contexte user (foyer, préfs, lieux, garde-manger, historique)
   const context = await loadUserContext(userId)
@@ -63,6 +77,9 @@ plansRouter.post('/generate', async (req, res) => {
     ? await db.insert(mealEntries).values(entryRows).returning()
     : []
 
+  // Décompte après succès : un échec LLM (500) ne coûte pas de crédit
+  if (!me.isAdmin) await consumeCredit(userId, 'generate_plan')
+
   res.status(201).json({ plan, entries })
 })
 
@@ -77,6 +94,20 @@ plansRouter.post('/:id/regenerate', async (req, res) => {
     where: and(eq(weeklyPlans.id, req.params.id), eq(weeklyPlans.userId, userId)),
   })
   if (!existing) throw new NotFoundError('Plan introuvable')
+
+  // Régénération gratuite : 1 seule fois, dans la minute qui suit la génération payée.
+  // Au-delà (ou après une regen gratuite), la régénération coûte 1 crédit.
+  const ageMs = Date.now() - new Date(existing.createdAt).getTime()
+  const isFreeRegen = existing.regenCount === 0 && ageMs < FREE_REGEN_WINDOW_MS
+
+  const me = await db.query.users.findFirst({
+    where: eq(users.id, userId),
+    columns: { credits: true, isAdmin: true },
+  })
+  if (!me) throw new NotFoundError('Utilisateur introuvable')
+  if (!isFreeRegen && !me.isAdmin && me.credits < 1) {
+    throw new PaymentRequiredError('La régénération gratuite (1 minute) est passée et votre solde de crédits est à zéro. Rechargez votre compte.')
+  }
 
   // Récupérer les inputs originaux (stockés dans inputsJson) et l'output précédent
   const inputs = GeneratePlanInputSchema.parse(existing.inputsJson)
@@ -103,6 +134,8 @@ plansRouter.post('/:id/regenerate', async (req, res) => {
       inputsJson: inputs,
       outputJson: newOutput,
       status: 'draft',
+      // Regen payante = nouveau "achat" → rouvre une fenêtre de regen gratuite
+      regenCount: isFreeRegen ? existing.regenCount + 1 : 0,
     })
     .returning()
 
@@ -115,6 +148,8 @@ plansRouter.post('/:id/regenerate', async (req, res) => {
   const entries = entryRows.length > 0
     ? await db.insert(mealEntries).values(entryRows).returning()
     : []
+
+  if (!isFreeRegen && !me.isAdmin) await consumeCredit(userId, 'regenerate_with_feedback')
 
   res.status(201).json({ plan: newPlan, entries })
 })

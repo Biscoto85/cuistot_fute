@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { DAYS_OF_WEEK, DESSERT_MODES } from '@cuistot/shared'
 import type { DessertMode } from '@cuistot/shared'
+import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiError } from '@/lib/api'
 import { nextMonday } from '@/lib/homeMode'
 
@@ -157,6 +158,7 @@ function SlotGrid({
 
 export function GeneratePage() {
   const navigate = useNavigate()
+  const { refresh } = useAuth()
   const [form, setForm] = useState<FormState>(initialState)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -191,6 +193,7 @@ export function GeneratePage() {
         free_note: form.freeNote || undefined,
       }
       const data = await api.post<{ plan: { id: string } }>('/api/plans/generate', body)
+      refresh() // met à jour le solde de crédits dans le header
       navigate(`/plan/${data.plan.id}`)
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Une erreur est survenue.')

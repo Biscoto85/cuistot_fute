@@ -7,6 +7,7 @@ vi.mock('@/db', () => ({
   db: {
     query: {
       weeklyPlans: { findMany: vi.fn(), findFirst: vi.fn() },
+      users: { findFirst: vi.fn() },
     },
     insert: vi.fn(),
     update: vi.fn(),
@@ -21,7 +22,12 @@ vi.mock('@/llm/generate', () => ({
   generatePlan: vi.fn(),
 }))
 
+vi.mock('@/lib/credits', () => ({
+  consumeCredit: vi.fn(),
+}))
+
 import { db } from '@/db'
+import { consumeCredit } from '@/lib/credits'
 import { loadUserContext } from '@/llm/context-loader'
 import { generatePlan } from '@/llm/generate'
 import { createApp } from '@/app'
@@ -60,7 +66,9 @@ const validPlanOutput = {
   warnings: [],
 }
 
-const mockPlan = { id: 'plan-1', userId: 'user-1', weekStartDate: '2025-05-12', status: 'draft', inputsJson: validInput, outputJson: validPlanOutput, notes: null, createdAt: new Date(), updatedAt: new Date() }
+const mockPlan = { id: 'plan-1', userId: 'user-1', weekStartDate: '2025-05-12', status: 'draft', regenCount: 0, inputsJson: validInput, outputJson: validPlanOutput, notes: null, createdAt: new Date(), updatedAt: new Date() }
+
+const mockUserWithCredits = { credits: 2, isAdmin: false }
 
 function mockInsert(returnValue: unknown[] = []) {
   const returning = vi.fn().mockResolvedValue(returnValue)
@@ -72,7 +80,10 @@ function mockInsert(returnValue: unknown[] = []) {
 // ─── POST /api/plans/generate ──────────────────────────────────────────────────
 
 describe('POST /api/plans/generate', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(db.query.users.findFirst).mockResolvedValue(mockUserWithCredits as any)
+  })
 
   it('renvoie 401 sans auth', async () => {
     const res = await request(app).post('/api/plans/generate').send(validInput)
@@ -133,6 +144,43 @@ describe('POST /api/plans/generate', () => {
     expect(loadUserContext).toHaveBeenCalledWith('user-1')
     // generatePlan appelé avec les inputs validés
     expect(generatePlan).toHaveBeenCalledWith(expect.any(Object), expect.objectContaining({ week_start_date: '2025-05-12' }), 'user-1')
+    // 1 crédit consommé
+    expect(consumeCredit).toHaveBeenCalledWith('user-1', 'generate_plan')
+  })
+
+  it('renvoie 402 si le solde de crédits est à zéro', async () => {
+    vi.mocked(db.query.users.findFirst).mockResolvedValue({ credits: 0, isAdmin: false } as any)
+
+    const res = await request(app)
+      .post('/api/plans/generate')
+      .set('Cookie', cookie)
+      .send(validInput)
+
+    expect(res.status).toBe(402)
+    expect(generatePlan).not.toHaveBeenCalled()
+    expect(consumeCredit).not.toHaveBeenCalled()
+  })
+
+  it('ne consomme pas de crédit pour un admin, même à solde nul', async () => {
+    vi.mocked(db.query.users.findFirst).mockResolvedValue({ credits: 0, isAdmin: true } as any)
+    vi.mocked(loadUserContext).mockResolvedValueOnce({} as any)
+    vi.mocked(generatePlan).mockResolvedValueOnce(validPlanOutput as any)
+
+    const returningPlan = vi.fn().mockResolvedValueOnce([mockPlan])
+    const valuesPlan = vi.fn().mockReturnValue({ returning: returningPlan })
+    const returningEntries = vi.fn().mockResolvedValueOnce([])
+    const valuesEntries = vi.fn().mockReturnValue({ returning: returningEntries })
+    vi.mocked(db.insert)
+      .mockReturnValueOnce({ values: valuesPlan } as any)
+      .mockReturnValueOnce({ values: valuesEntries } as any)
+
+    const res = await request(app)
+      .post('/api/plans/generate')
+      .set('Cookie', cookie)
+      .send(validInput)
+
+    expect(res.status).toBe(201)
+    expect(consumeCredit).not.toHaveBeenCalled()
   })
 
   it('propage l\'erreur LLM (500) et ne persiste rien', async () => {
@@ -232,7 +280,10 @@ describe('GET /api/plans/:id', () => {
 // ─── POST /api/plans/:id/regenerate ───────────────────────────────────────────
 
 describe('POST /api/plans/:id/regenerate', () => {
-  beforeEach(() => vi.clearAllMocks())
+  beforeEach(() => {
+    vi.clearAllMocks()
+    vi.mocked(db.query.users.findFirst).mockResolvedValue(mockUserWithCredits as any)
+  })
 
   it('renvoie 401 sans auth', async () => {
     const res = await request(app).post('/api/plans/plan-1/regenerate').send({ feedback: 'Trop de viande' })
@@ -298,6 +349,62 @@ describe('POST /api/plans/:id/regenerate', () => {
     )
     // Vérifie que l'ancien plan a été archivé
     expect(db.update).toHaveBeenCalledTimes(1)
+    // Plan créé il y a < 1 min avec regenCount 0 → regen gratuite, pas de crédit consommé
+    expect(consumeCredit).not.toHaveBeenCalled()
+  })
+
+  it('consomme 1 crédit si la fenêtre gratuite est passée', async () => {
+    const oldPlan = { ...mockPlan, createdAt: new Date(Date.now() - 5 * 60_000) }
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(oldPlan as any)
+    vi.mocked(loadUserContext).mockResolvedValueOnce({} as any)
+    vi.mocked(generatePlan).mockResolvedValueOnce(validPlanOutput as any)
+
+    const updateWhere = vi.fn().mockResolvedValue([])
+    const updateSet = vi.fn().mockReturnValue({ where: updateWhere })
+    vi.mocked(db.update).mockReturnValueOnce({ set: updateSet } as any)
+
+    const returningNewPlan = vi.fn().mockResolvedValueOnce([{ ...mockPlan, id: 'plan-new' }])
+    const valuesNewPlan = vi.fn().mockReturnValue({ returning: returningNewPlan })
+    const returningEntries = vi.fn().mockResolvedValueOnce([])
+    const valuesEntries = vi.fn().mockReturnValue({ returning: returningEntries })
+    vi.mocked(db.insert)
+      .mockReturnValueOnce({ values: valuesNewPlan } as any)
+      .mockReturnValueOnce({ values: valuesEntries } as any)
+
+    const res = await request(app)
+      .post('/api/plans/plan-1/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: 'Autre chose.' })
+
+    expect(res.status).toBe(201)
+    expect(consumeCredit).toHaveBeenCalledWith('user-1', 'regenerate_with_feedback')
+  })
+
+  it('renvoie 402 si la fenêtre gratuite est passée et le solde à zéro', async () => {
+    const oldPlan = { ...mockPlan, createdAt: new Date(Date.now() - 5 * 60_000) }
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(oldPlan as any)
+    vi.mocked(db.query.users.findFirst).mockResolvedValue({ credits: 0, isAdmin: false } as any)
+
+    const res = await request(app)
+      .post('/api/plans/plan-1/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: 'Autre chose.' })
+
+    expect(res.status).toBe(402)
+    expect(generatePlan).not.toHaveBeenCalled()
+  })
+
+  it('regen déjà utilisée (regenCount > 0) → payante même dans la minute', async () => {
+    const chainedPlan = { ...mockPlan, regenCount: 1, createdAt: new Date() }
+    vi.mocked(db.query.weeklyPlans.findFirst).mockResolvedValueOnce(chainedPlan as any)
+    vi.mocked(db.query.users.findFirst).mockResolvedValue({ credits: 0, isAdmin: false } as any)
+
+    const res = await request(app)
+      .post('/api/plans/plan-1/regenerate')
+      .set('Cookie', cookie)
+      .send({ feedback: 'Encore autre chose.' })
+
+    expect(res.status).toBe(402)
   })
 })
 

@@ -1,6 +1,7 @@
 // Exports dans l'ordre des dépendances pour que Drizzle génère les FK dans le bon ordre.
 
 export * from './users'
+export * from './credit-transactions'
 export * from './households'
 export * from './user-locations'
 export * from './user-preferences'

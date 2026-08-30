@@ -11,6 +11,16 @@ export function AppLayout() {
         <div className="mx-auto flex max-w-4xl items-center justify-between">
           <span className="font-semibold text-stone-800 tracking-tight">Cuistot Futé</span>
           <div className="flex items-center gap-3 sm:gap-4">
+            {user && !user.isAdmin && (
+              <span
+                className={`text-xs px-2 py-0.5 rounded-full ${
+                  user.credits > 0 ? 'bg-stone-100 text-stone-600' : 'bg-red-50 text-red-600'
+                }`}
+                title="1 crédit = 1 génération de plan"
+              >
+                {user.credits} crédit{user.credits > 1 ? 's' : ''}
+              </span>
+            )}
             {user && (
               <span className="hidden sm:inline text-sm text-stone-500">{user.displayName ?? user.email}</span>
             )}

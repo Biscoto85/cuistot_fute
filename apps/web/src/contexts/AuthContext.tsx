@@ -7,6 +7,8 @@ type AuthUser = {
   email: string
   displayName: string | null
   onboardingCompleted: boolean
+  credits: number
+  isAdmin: boolean
 }
 
 type AuthState =
