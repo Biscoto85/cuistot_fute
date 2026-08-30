@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { api, ApiError } from '@/lib/api'
 import { LOCATION_KINDS } from '@cuistot/shared'
 import type { LocationKind } from '@cuistot/shared'
+import { ChildrenAgesEditor } from '@/components/ChildrenAgesEditor'
 
 // ─── Types locaux ──────────────────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ type LocationDraft = { name: string; kind: LocationKind; notes: string }
 type WizardState = {
   // Étape 1 — Foyer
   adults: number
-  children: number
+  childrenAges: number[]
   householdDescription: string
   // Étape 2 — Lieux
   locations: LocationDraft[]
@@ -154,7 +155,7 @@ export function OnboardingPage() {
 
   const [state, setState] = useState<WizardState>({
     adults: 1,
-    children: 0,
+    childrenAges: [],
     householdDescription: '',
     locations: [{ name: '', kind: 'supermarche', notes: '' }],
     loves: [],
@@ -179,7 +180,8 @@ export function OnboardingPage() {
   async function saveStep1() {
     await api.put('/api/household', {
       adults: state.adults,
-      children: state.children,
+      children: state.childrenAges.length,
+      children_ages: state.childrenAges,
       description: state.householdDescription || null,
     })
   }
@@ -323,22 +325,14 @@ function Step1Foyer({ state, update }: { state: WizardState; update: <K extends 
   return (
     <>
       <h2 className="text-lg font-semibold text-stone-800">Votre foyer</h2>
-      <div className="flex gap-6">
-        <div className="flex-1">
-          <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
-          <select value={state.adults} onChange={(e) => update('adults', parseInt(e.target.value))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
-            {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm text-stone-600 mb-1">Enfants (&lt; 13 ans)</label>
-          <select value={state.children} onChange={(e) => update('children', parseInt(e.target.value))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
-            {[0,1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
+        <select value={state.adults} onChange={(e) => update('adults', parseInt(e.target.value))}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
       </div>
+      <ChildrenAgesEditor ages={state.childrenAges} onChange={(v) => update('childrenAges', v)} />
       <div>
         <label className="block text-sm text-stone-600 mb-1">Description libre <span className="text-stone-400">(optionnel)</span></label>
         <input type="text" value={state.householdDescription}

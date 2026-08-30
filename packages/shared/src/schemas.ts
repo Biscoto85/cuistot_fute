@@ -23,6 +23,8 @@ export type LoginInput = z.infer<typeof LoginSchema>
 export const HouseholdUpdateSchema = z.object({
   adults: z.number().int().min(1).optional(),
   children: z.number().int().min(0).optional(),
+  // Âges des enfants (années révolues) — permet au LLM d'adapter portions, goûters et textures
+  children_ages: z.array(z.number().int().min(0).max(17)).max(10).optional(),
   description: z.string().max(500).nullish(),
 })
 
@@ -150,11 +152,17 @@ export type DayOfWeek = (typeof DAYS_OF_WEEK)[number]
 // Slot au format "lundi-midi" | "lundi-soir" | ...
 const coveredSlotPattern = /^(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)-(midi|soir)$/
 
+// Desserts : 'simple' = fruits/laitages aux courses, 'gourmand' = en plus une pâtisserie du dimanche
+export const DESSERT_MODES = ['aucun', 'simple', 'gourmand'] as const
+export type DessertMode = (typeof DESSERT_MODES)[number]
+
 export const GeneratePlanInputSchema = z.object({
   week_start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date ISO YYYY-MM-DD attendue'),
   cravings: z.string().max(500).optional(),
   surprise_mode: z.boolean().default(false),
   include_breakfast: z.boolean().default(true),
+  include_snacks: z.boolean().default(false),
+  dessert_mode: z.enum(DESSERT_MODES).default('aucun'),
   sunday_prep_count: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
   // Durée en minutes : valeurs slider 60/90/120/150/180/210+
   sunday_time_min: z.number().int().min(60),
@@ -227,6 +235,34 @@ export const PlanOutputSchema = z.object({
       daily_options: z.array(z.string()),
     })
     .nullable(),
+
+  // Goûters et desserts : même forme que breakfast.
+  // nullish (et non nullable) pour rester compatible avec les plans générés avant v5.
+  snacks: z
+    .object({
+      sunday_prep: z.array(
+        z.object({
+          name: z.string(),
+          short_instructions: z.string(),
+          keeps_days: z.number(),
+        }),
+      ),
+      daily_options: z.array(z.string()),
+    })
+    .nullish(),
+
+  desserts: z
+    .object({
+      sunday_prep: z.array(
+        z.object({
+          name: z.string(),
+          short_instructions: z.string(),
+          keeps_days: z.number(),
+        }),
+      ),
+      daily_options: z.array(z.string()),
+    })
+    .nullish(),
 
   shopping_list: z.array(
     z.object({

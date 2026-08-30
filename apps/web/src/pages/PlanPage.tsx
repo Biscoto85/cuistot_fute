@@ -95,6 +95,35 @@ function DailyPlanTable({ plan, entries }: {
   )
 }
 
+// Petit-déj / goûters / desserts partagent la même forme de bloc.
+function ExtraMealsBlock({ title, block }: {
+  title: string
+  block: { sunday_prep: Array<{ name: string; short_instructions: string }>; daily_options: string[] } | null | undefined
+}) {
+  if (!block) return null
+  return (
+    <section>
+      <h2 className="text-sm font-medium text-stone-700 mb-3">{title}</h2>
+      <div className="rounded-xl border border-stone-200 bg-white p-4 space-y-2">
+        {block.sunday_prep.length > 0 && (
+          <div>
+            <p className="text-xs text-stone-400 mb-1">Préparation dimanche</p>
+            {block.sunday_prep.map((item, i) => (
+              <p key={i} className="text-sm text-stone-700">{item.name} — {item.short_instructions}</p>
+            ))}
+          </div>
+        )}
+        {block.daily_options.length > 0 && (
+          <div>
+            <p className="text-xs text-stone-400 mb-1">Options quotidiennes</p>
+            <p className="text-sm text-stone-700">{block.daily_options.join(' · ')}</p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
 // ─── Modale de régénération ───────────────────────────────────────────────────
 
 function RegenerateModal({ planId, onClose }: { planId: string; onClose: () => void }) {
@@ -275,28 +304,10 @@ export function PlanPage() {
         </div>
       </section>
 
-      {/* Petit-déj */}
-      {output.breakfast && (
-        <section>
-          <h2 className="text-sm font-medium text-stone-700 mb-3">Petit-déjeuner</h2>
-          <div className="rounded-xl border border-stone-200 bg-white p-4 space-y-2">
-            {output.breakfast.sunday_prep.length > 0 && (
-              <div>
-                <p className="text-xs text-stone-400 mb-1">Préparation dimanche</p>
-                {output.breakfast.sunday_prep.map((item, i) => (
-                  <p key={i} className="text-sm text-stone-700">{item.name} — {item.short_instructions}</p>
-                ))}
-              </div>
-            )}
-            {output.breakfast.daily_options.length > 0 && (
-              <div>
-                <p className="text-xs text-stone-400 mb-1">Options quotidiennes</p>
-                <p className="text-sm text-stone-700">{output.breakfast.daily_options.join(' · ')}</p>
-              </div>
-            )}
-          </div>
-        </section>
-      )}
+      {/* Petit-déj, goûters, desserts */}
+      <ExtraMealsBlock title="Petit-déjeuner" block={output.breakfast} />
+      <ExtraMealsBlock title="Goûters" block={output.snacks} />
+      <ExtraMealsBlock title="Desserts" block={output.desserts} />
 
       {/* Actions */}
       <div className="flex items-center gap-4 text-sm text-stone-400">

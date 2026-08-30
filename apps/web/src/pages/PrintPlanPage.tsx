@@ -138,26 +138,30 @@ export function PrintPlanPage() {
           </ol>
         </section>
 
-        {/* Petit-déjeuner */}
-        {output.breakfast && (
-          <section>
-            <h2 className="text-sm font-semibold text-stone-700 mb-2 uppercase tracking-wide">Petit-déjeuner</h2>
-            {output.breakfast.sunday_prep.length > 0 && (
+        {/* Petit-déjeuner, goûters, desserts */}
+        {([
+          ['Petit-déjeuner', output.breakfast],
+          ['Goûters', output.snacks],
+          ['Desserts', output.desserts],
+        ] as const).map(([title, block]) => block && (
+          <section key={title}>
+            <h2 className="text-sm font-semibold text-stone-700 mb-2 uppercase tracking-wide">{title}</h2>
+            {block.sunday_prep.length > 0 && (
               <div className="mb-2">
                 <p className="text-xs text-stone-400 mb-1">Préparation dimanche</p>
-                {output.breakfast.sunday_prep.map((item, i) => (
+                {block.sunday_prep.map((item, i) => (
                   <p key={i} className="text-sm text-stone-700">{item.name} — {item.short_instructions}</p>
                 ))}
               </div>
             )}
-            {output.breakfast.daily_options.length > 0 && (
+            {block.daily_options.length > 0 && (
               <p className="text-sm text-stone-700">
                 <span className="text-xs text-stone-400 mr-1">Options :</span>
-                {output.breakfast.daily_options.join(' · ')}
+                {block.daily_options.join(' · ')}
               </p>
             )}
           </section>
-        )}
+        ))}
 
         {/* Liste de courses */}
         {output.shopping_list.length > 0 && (
@@ -189,7 +193,7 @@ export function PrintPlanPage() {
         {/* Pied de page */}
         <div className="border-t border-stone-100 pt-4">
           <p className="text-xs text-stone-300">
-            Cuistot Futé — semaine du {fmtDate(plan.weekStartDate)}
+            Cuistot Futé — la charge mentale, c'est cuit. · Semaine du {fmtDate(plan.weekStartDate)}
           </p>
         </div>
       </div>

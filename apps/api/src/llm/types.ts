@@ -8,6 +8,7 @@ export type LlmUserContext = {
   household: {
     adults: number
     children: number
+    childrenAges: number[]
     description: string | null
   }
   preferences: {

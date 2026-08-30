@@ -1,5 +1,5 @@
 import type { GeneratePlanInput, PlanOutput } from '@cuistot/shared'
-import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v4'
+import { PROMPT_VERSION, SYSTEM_PROMPT_TEMPLATE } from './prompts/system-v5'
 import { getSeasonalProduce } from './seasons'
 import type { LlmUserContext } from './types'
 
@@ -84,10 +84,16 @@ export function buildSystemPrompt(ctx: LlmUserContext, inputs: GeneratePlanInput
   const tierLabel = TIER_LABELS[ctx.preferences.menuTier] ?? 'normal'
   const fishRule = ctx.preferences.fishOk ? 'autorisés' : 'NON autorisés'
 
+  const childrenDetail = ctx.household.children > 0
+    ? ctx.household.childrenAges.length > 0
+      ? `${ctx.household.children} enfant(s) (âges : ${ctx.household.childrenAges.join(', ')} ans)`
+      : `${ctx.household.children} enfant(s) de moins de 13 ans`
+    : 'aucun enfant'
+
   return SYSTEM_PROMPT_TEMPLATE
     .replace('{{display_name}}', ctx.user.displayName)
     .replace('{{adults}}', String(ctx.household.adults))
-    .replace('{{children}}', String(ctx.household.children))
+    .replace('{{children_detail}}', childrenDetail)
     .replace('{{household_description}}', ctx.household.description ?? '(pas de description)')
     .replace('{{loves}}', fmt(ctx.preferences.loves))
     .replace('{{dislikes}}', fmt(ctx.preferences.dislikes))
@@ -128,6 +134,8 @@ export function buildUserMessage(inputs: GeneratePlanInput): string {
     `Créneaux à couvrir : ${slots}`,
     envies,
     `Petit-déjeuner inclus : ${inputs.include_breakfast ? 'oui' : 'non'}`,
+    `Goûters inclus : ${inputs.include_snacks ? 'oui' : 'non'}`,
+    `Desserts : ${inputs.dessert_mode}`,
     `Nombre de préparations dimanche : ${inputs.sunday_prep_count}`,
     `Temps dispo dimanche : ${inputs.sunday_time_min} min`,
     `Temps max assemblage semaine : ${inputs.weekday_max_assembly_min} min`,

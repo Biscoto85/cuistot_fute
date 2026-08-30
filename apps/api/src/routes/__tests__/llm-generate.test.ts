@@ -28,7 +28,7 @@ const PT_UUID = '22222222-2222-2222-2222-222222222222'
 
 const ctx: LlmUserContext = {
   user: { displayName: 'François-Xavier' },
-  household: { adults: 2, children: 0, description: 'Couple, cuisine le dimanche.' },
+  household: { adults: 2, children: 0, childrenAges: [], description: 'Couple, cuisine le dimanche.' },
   preferences: {
     loves: ['poulet', 'légumineuses', 'cuisine asiatique'],
     dislikes: ['betterave'],
@@ -57,6 +57,8 @@ const inputs: GeneratePlanInput = {
   weekday_max_assembly_min: 15,
   covered_slots: ['lundi-midi', 'lundi-soir', 'mardi-soir'],
   include_breakfast: true,
+  include_snacks: false,
+  dessert_mode: 'aucun',
   surprise_mode: false,
   sunday_prep_count: 3,
 }

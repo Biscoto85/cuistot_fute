@@ -1,4 +1,4 @@
-import { integer, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
+import { integer, jsonb, pgTable, text, timestamp, uuid } from 'drizzle-orm/pg-core'
 import { users } from './users'
 
 export const households = pgTable('households', {
@@ -9,6 +9,8 @@ export const households = pgTable('households', {
     .references(() => users.id, { onDelete: 'cascade' }),
   adults: integer('adults').notNull().default(1),
   children: integer('children').notNull().default(0),
+  // Âges en années révolues — children reste le compteur, maintenu = childrenAges.length côté API
+  childrenAges: jsonb('children_ages').$type<number[]>().notNull().default([]),
   description: text('description'),
   createdAt: timestamp('created_at', { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp('updated_at', { withTimezone: true })

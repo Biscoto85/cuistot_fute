@@ -33,7 +33,8 @@ export function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-stone-50 px-4">
       <div className="w-full max-w-sm">
-        <h1 className="mb-8 text-2xl font-semibold text-stone-800">Connexion</h1>
+        <h1 className="mb-1 text-2xl font-semibold text-stone-800">Connexion</h1>
+        <p className="mb-8 text-sm text-stone-400">Cuistot Futé — la charge mentale, c'est cuit.</p>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm text-stone-600 mb-1" htmlFor="email">Email</label>

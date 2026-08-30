@@ -89,6 +89,7 @@ export async function loadUserContext(userId: string): Promise<LlmUserContext> {
     household: {
       adults: household?.adults ?? 1,
       children: household?.children ?? 0,
+      childrenAges: household?.childrenAges ?? [],
       description: household?.description ?? null,
     },
     preferences: {

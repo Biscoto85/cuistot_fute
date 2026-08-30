@@ -5,6 +5,8 @@ export default defineConfig({
   test: {
     environment: 'node',
     globals: true,
+    // Ne pas ramasser les tests compilés par tsc dans dist/
+    exclude: ['**/node_modules/**', '**/dist/**'],
     // Charge les variables d'env de test avant les suites.
     env: {
       NODE_ENV: 'test',

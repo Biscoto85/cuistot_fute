@@ -28,7 +28,10 @@ householdRouter.put('/', async (req, res) => {
     throw new BadRequestError('Données invalides')
   }
 
-  const { adults, children, description } = parsed.data
+  const { adults, children, children_ages: childrenAges, description } = parsed.data
+
+  // Si les âges sont fournis, le compteur children est dérivé — source de vérité unique.
+  const childrenCount = childrenAges !== undefined ? childrenAges.length : children
 
   const existing = await db.query.households.findFirst({
     where: eq(households.userId, req.user.id),
@@ -37,14 +40,14 @@ householdRouter.put('/', async (req, res) => {
   if (existing) {
     const [updated] = await db
       .update(households)
-      .set({ adults, children, description })
+      .set({ adults, children: childrenCount, childrenAges, description })
       .where(eq(households.id, existing.id))
       .returning()
     res.json({ household: updated })
   } else {
     const [created] = await db
       .insert(households)
-      .values({ userId: req.user.id, adults, children, description })
+      .values({ userId: req.user.id, adults, children: childrenCount, childrenAges, description })
       .returning()
     res.status(201).json({ household: created })
   }

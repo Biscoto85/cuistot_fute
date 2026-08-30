@@ -5,10 +5,11 @@ import { api, ApiError } from '@/lib/api'
 import { useAuth } from '@/contexts/AuthContext'
 import { LOCATION_KINDS, PANTRY_CATEGORIES, PANTRY_UNITS, PANTRY_PRIORITIES, STOCK_STATUSES } from '@cuistot/shared'
 import type { LocationKind, PantryCategory, PantryUnit, PantryPriority, StockStatus } from '@cuistot/shared'
+import { ChildrenAgesEditor } from '@/components/ChildrenAgesEditor'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
-type Household = { id: string; adults: number; children: number; description: string | null }
+type Household = { id: string; adults: number; children: number; childrenAges: number[]; description: string | null }
 type Location = { id: string; name: string; kind: LocationKind; notes: string | null; priority: number }
 type Preferences = {
   id: string
@@ -93,7 +94,7 @@ function FoyerSection() {
   })
 
   const [adults, setAdults] = useState<number | null>(null)
-  const [children, setChildren] = useState<number | null>(null)
+  const [childrenAges, setChildrenAges] = useState<number[] | null>(null)
   const [description, setDescription] = useState<string | null>(null)
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -101,13 +102,14 @@ function FoyerSection() {
   const household = data?.household
 
   function getAdults() { return adults ?? household?.adults ?? 1 }
-  function getChildren() { return children ?? household?.children ?? 0 }
+  function getChildrenAges() { return childrenAges ?? household?.childrenAges ?? [] }
   function getDescription() { return description ?? household?.description ?? '' }
 
   const mutation = useMutation({
     mutationFn: () => api.put('/api/household', {
       adults: getAdults(),
-      children: getChildren(),
+      children: getChildrenAges().length,
+      children_ages: getChildrenAges(),
       description: getDescription() || null,
     }),
     onSuccess: () => {
@@ -122,22 +124,14 @@ function FoyerSection() {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-6">
-        <div className="flex-1">
-          <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
-          <select value={getAdults()} onChange={(e) => setAdults(parseInt(e.target.value))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
-            {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
-        <div className="flex-1">
-          <label className="block text-sm text-stone-600 mb-1">Enfants (&lt; 13 ans)</label>
-          <select value={getChildren()} onChange={(e) => setChildren(parseInt(e.target.value))}
-            className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
-            {[0,1,2,3,4,5,6].map((n) => <option key={n} value={n}>{n}</option>)}
-          </select>
-        </div>
+      <div>
+        <label className="block text-sm text-stone-600 mb-1">Adultes (≥ 13 ans)</label>
+        <select value={getAdults()} onChange={(e) => setAdults(parseInt(e.target.value))}
+          className="w-full rounded-md border border-stone-300 px-3 py-2 text-sm focus:border-stone-500 focus:outline-none bg-white">
+          {[1,2,3,4,5,6,7,8].map((n) => <option key={n} value={n}>{n}</option>)}
+        </select>
       </div>
+      <ChildrenAgesEditor ages={getChildrenAges()} onChange={setChildrenAges} />
       <div>
         <label className="block text-sm text-stone-600 mb-1">Description <span className="text-stone-400">(optionnel)</span></label>
         <input type="text" value={getDescription()}

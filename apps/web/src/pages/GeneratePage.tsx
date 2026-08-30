@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { DAYS_OF_WEEK } from '@cuistot/shared'
+import { DAYS_OF_WEEK, DESSERT_MODES } from '@cuistot/shared'
+import type { DessertMode } from '@cuistot/shared'
 import { api, ApiError } from '@/lib/api'
 import { nextMonday } from '@/lib/homeMode'
 
@@ -11,6 +12,8 @@ type FormState = {
   cravings: string
   surpriseMode: boolean
   includeBreakfast: boolean
+  includeSnacks: boolean
+  dessertMode: DessertMode
   sundayPrepCount: 2 | 3 | 4
   sundayTimeMin: number
   weekdayMaxAssemblyMin: 10 | 15 | 20 | 30
@@ -60,6 +63,8 @@ function initialState(): FormState {
     cravings: '',
     surpriseMode: false,
     includeBreakfast: true,
+    includeSnacks: false,
+    dessertMode: 'aucun',
     sundayPrepCount: 3,
     sundayTimeMin: 120,
     weekdayMaxAssemblyMin: 15,
@@ -177,6 +182,8 @@ export function GeneratePage() {
         cravings: form.cravings || undefined,
         surprise_mode: form.surpriseMode,
         include_breakfast: form.includeBreakfast,
+        include_snacks: form.includeSnacks,
+        dessert_mode: form.dessertMode,
         sunday_prep_count: form.sundayPrepCount,
         sunday_time_min: form.sundayTimeMin,
         weekday_max_assembly_min: form.weekdayMaxAssemblyMin,
@@ -321,6 +328,38 @@ export function GeneratePage() {
             />
             <span className="text-sm text-stone-600">Inclure le petit-déjeuner</span>
           </label>
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={form.includeSnacks}
+              onChange={(e) => update('includeSnacks', e.target.checked)}
+              className="h-4 w-4 rounded border-stone-300"
+            />
+            <span className="text-sm text-stone-600">Inclure les goûters</span>
+          </label>
+          <div className="flex items-center gap-3 flex-wrap">
+            <span className="text-sm text-stone-600 shrink-0">Desserts</span>
+            <div className="flex gap-2">
+              {DESSERT_MODES.map((m) => (
+                <button
+                  key={m}
+                  type="button"
+                  onClick={() => update('dessertMode', m)}
+                  className={`rounded-md px-3 py-1.5 text-sm border transition-colors ${
+                    form.dessertMode === m
+                      ? 'bg-stone-800 text-white border-stone-800'
+                      : 'border-stone-300 text-stone-600 hover:bg-stone-50'
+                  }`}
+                >
+                  {m === 'aucun' ? 'Aucun' : m === 'simple' ? 'Simple' : 'Gourmand'}
+                </button>
+              ))}
+            </div>
+            <span className="text-xs text-stone-400">
+              {form.dessertMode === 'simple' && 'Fruits et laitages de saison'}
+              {form.dessertMode === 'gourmand' && 'Avec une pâtisserie du dimanche'}
+            </span>
+          </div>
           <div className="flex items-center gap-3">
             <label className="text-sm text-stone-600 shrink-0">Budget cible</label>
             <div className="flex items-center gap-1">
